@@ -42,7 +42,14 @@ bin/rails server -p 4000
 ## Testing
 
 ```bash
+# Run all tests
 bundle exec rspec
+
+# Run specific test file
+bundle exec rspec spec/models/user_spec.rb
+
+# Run with coverage report
+COVERAGE=true bundle exec rspec
 ```
 
 ## API Documentation
