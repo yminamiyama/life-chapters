@@ -25,7 +25,7 @@
 
 Validations:
 - email一意 & フォーマット
-- birthdateは1900-01-01〜現在
+- birthdateは(現在年-100)〜(現在年-20)（例: 1925-01-01〜2005-12-31）
 
 ## TimeBucket
 - `id (UUID)`
