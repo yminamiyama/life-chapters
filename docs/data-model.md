@@ -33,7 +33,7 @@ Validations:
 - `label (string)` — 例: "20-24"
 - `start_age (integer)`
 - `end_age (integer)`
-- `granularity (enum: five_years | ten_years)`
+- `granularity (enum: 5y | 10y)`
 - `description (text)`
 - `position (integer)` — 表示順
 - `created_at`, `updated_at`
