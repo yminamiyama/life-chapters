@@ -10,7 +10,6 @@ export const analytics = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${posthogKey}`,
         },
         body: JSON.stringify({
           api_key: posthogKey,
