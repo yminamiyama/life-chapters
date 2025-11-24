@@ -2,7 +2,7 @@
 
 **Created**: 2025-11-17  
 **Status**: Draft  
-**Input**: User description: "input/time-bucket-app.input.md"  
+**Input**: User description: "docs/time-bucket-app.input.md"  
 **Language Requirement**: 本仕様書は全編日本語で記載する。
 
 ## User Scenarios & Testing *(mandatory)*
