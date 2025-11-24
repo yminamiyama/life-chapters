@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_24_232821) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_24_233706) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -24,6 +24,21 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_232821) do
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
     t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
+  end
+
+  create_table "time_buckets", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.integer "end_age", null: false
+    t.string "granularity", null: false
+    t.string "label", null: false
+    t.integer "position", default: 0, null: false
+    t.integer "start_age", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.index ["user_id", "position"], name: "index_time_buckets_on_user_id_and_position"
+    t.index ["user_id", "start_age", "end_age"], name: "index_time_buckets_on_user_id_and_start_age_and_end_age"
+    t.index ["user_id"], name: "index_time_buckets_on_user_id"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -40,4 +55,5 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_232821) do
   end
 
   add_foreign_key "notification_preferences", "users"
+  add_foreign_key "time_buckets", "users"
 end

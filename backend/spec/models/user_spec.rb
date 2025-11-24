@@ -2,8 +2,7 @@ require 'rails_helper'
 
 RSpec.describe User, type: :model do
   describe 'associations' do
-    # Pending until TimeBucket model is created
-    xit { should have_many(:time_buckets).dependent(:destroy) }
+    it { should have_many(:time_buckets).dependent(:destroy) }
     it { should have_one(:notification_preference).dependent(:destroy) }
   end
 
