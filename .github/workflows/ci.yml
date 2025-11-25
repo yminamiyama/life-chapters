@@ -37,11 +37,6 @@ jobs:
           bundler-cache: true
           working-directory: backend
 
-      - name: Install dependencies
-        run: |
-          cd backend
-          bundle install --jobs 4 --retry 3
-
       - name: Set up database
         env:
           RAILS_ENV: test
