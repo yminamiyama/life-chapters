@@ -19,7 +19,7 @@ class BucketItem < ApplicationRecord
 
   scope :by_status, ->(status) { where(status: status) }
   scope :by_category, ->(category) { where(category: category) }
-  scope :upcoming, -> { where('target_year <= ?', Date.today.year + 5).where.not(status: 'done') }
+  scope :upcoming, -> { where('target_year IS NOT NULL AND target_year <= ?', Date.today.year + 5).where.not(status: 'done') }
   scope :completed, -> { where(status: 'done') }
 
   def user
