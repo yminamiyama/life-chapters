@@ -5,7 +5,6 @@ class BucketItem < ApplicationRecord
   STATUSES = %w[planned in_progress done].freeze
 
   belongs_to :time_bucket
-  has_many :insight_placeholders, dependent: :destroy
 
   validates :title, presence: true
   validates :category, presence: true, inclusion: { in: CATEGORIES }

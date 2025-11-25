@@ -3,8 +3,6 @@ require 'rails_helper'
 RSpec.describe BucketItem, type: :model do
   describe 'associations' do
     it { should belong_to(:time_bucket) }
-    # Pending until InsightPlaceholder model is created
-    xit { should have_many(:insight_placeholders).dependent(:destroy) }
   end
 
   describe 'validations' do
