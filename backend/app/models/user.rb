@@ -37,9 +37,8 @@ class User < ApplicationRecord
   def birthdate_within_valid_range
     return unless birthdate
 
-    current_year = Date.today.year
-    min_birthdate = Date.new(current_year - 100, 1, 1)
-    max_birthdate = Date.new(current_year - 20, 12, 31)
+    min_birthdate = 100.years.ago.to_date
+    max_birthdate = 20.years.ago.to_date
 
     if birthdate < min_birthdate || birthdate > max_birthdate
       errors.add(:birthdate, "must be between #{min_birthdate} and #{max_birthdate}")
