@@ -3,8 +3,7 @@ require 'rails_helper'
 RSpec.describe TimeBucket, type: :model do
   describe 'associations' do
     it { should belong_to(:user) }
-    # Pending until BucketItem model is created
-    xit { should have_many(:bucket_items).dependent(:destroy) }
+    it { should have_many(:bucket_items).dependent(:destroy) }
   end
 
   describe 'validations' do

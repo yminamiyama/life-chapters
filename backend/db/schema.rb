@@ -10,10 +10,32 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_24_233706) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_24_235625) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "bucket_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "category", null: false
+    t.datetime "completed_at"
+    t.integer "cost_estimate", default: 0
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "difficulty"
+    t.jsonb "notes", default: {}
+    t.string "risk_level"
+    t.string "status", default: "planned", null: false
+    t.string "tags", default: [], array: true
+    t.integer "target_year"
+    t.uuid "time_bucket_id", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.text "value_statement", null: false
+    t.index ["category"], name: "index_bucket_items_on_category"
+    t.index ["status"], name: "index_bucket_items_on_status"
+    t.index ["target_year"], name: "index_bucket_items_on_target_year"
+    t.index ["time_bucket_id"], name: "index_bucket_items_on_time_bucket_id"
+  end
 
   create_table "notification_preferences", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -54,6 +76,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_233706) do
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "((provider IS NOT NULL) AND (uid IS NOT NULL))"
   end
 
+  add_foreign_key "bucket_items", "time_buckets"
   add_foreign_key "notification_preferences", "users"
   add_foreign_key "time_buckets", "users"
 end
