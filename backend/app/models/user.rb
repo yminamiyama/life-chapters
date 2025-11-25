@@ -47,6 +47,6 @@ class User < ApplicationRecord
   end
 
   def create_default_notification_preference
-    build_notification_preference.save
+    create_notification_preference!
   end
 end
