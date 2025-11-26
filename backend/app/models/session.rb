@@ -8,6 +8,9 @@ class Session < ApplicationRecord
   private
   
   def generate_token
-    self.token ||= SecureRandom.urlsafe_base64(32)
+    loop do
+      self.token = SecureRandom.urlsafe_base64(32)
+      break unless Session.exists?(token: token)
+    end
   end
 end
