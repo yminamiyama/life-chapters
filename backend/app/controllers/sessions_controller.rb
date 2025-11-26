@@ -1,6 +1,4 @@
 class SessionsController < ApplicationController
-  skip_before_action :verify_authenticity_token, only: :create
-  
   # OAuth callback handler
   def create
     auth = request.env['omniauth.auth']
