@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_25_142415) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_26_130734) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -48,6 +48,17 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_25_142415) do
     t.index ["user_id"], name: "index_notification_preferences_on_user_id", unique: true
   end
 
+  create_table "sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "ip_address"
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.uuid "user_id", null: false
+    t.index ["token"], name: "index_sessions_on_token", unique: true
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
   create_table "time_buckets", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -78,5 +89,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_25_142415) do
 
   add_foreign_key "bucket_items", "time_buckets"
   add_foreign_key "notification_preferences", "users"
+  add_foreign_key "sessions", "users"
   add_foreign_key "time_buckets", "users"
 end
