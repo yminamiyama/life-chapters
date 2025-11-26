@@ -2,6 +2,7 @@ class User < ApplicationRecord
   # Associations
   has_many :time_buckets, dependent: :destroy
   has_one :notification_preference, dependent: :destroy
+  has_many :sessions, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }
