@@ -34,6 +34,13 @@ RSpec.describe Session, type: :model do
       expect(session.token).to be_present
     end
     
+    it 'does not overwrite manually set token' do
+      custom_token = 'custom_token_value'
+      session = Session.new(user: user, ip_address: '127.0.0.1', user_agent: 'Test', token: custom_token)
+      session.save!
+      expect(session.token).to eq(custom_token)
+    end
+    
     it 'generates a unique token' do
       session1 = create(:session, user: user)
       session2 = create(:session, user: user)
