@@ -25,7 +25,6 @@ RSpec.describe "Api::V1::Dashboard Review Completed", type: :request do
 
     context "when user has completed items across categories" do
       before do
-        current_year = Date.today.year
         birth_year = user.birthdate.year
         # Completed items in different categories
         # bucket_20s: ages 20-29, so years birth_year+20 to birth_year+29
