@@ -67,6 +67,69 @@ module Api
         }
       end
 
+      # GET /api/v1/dashboard/review-completed
+      def review_completed
+        completed_items = BucketItem.joins(:time_bucket)
+                                    .where(time_buckets: { user_id: current_user.id })
+                                    .where(status: 'done')
+
+        total_cost = completed_items.sum(:cost_estimate)
+        total_items = completed_items.count
+
+        # Category-wise achievement rates
+        category_achievements = BucketItem::CATEGORIES.map do |category|
+          total_in_category = BucketItem.joins(:time_bucket)
+                                        .where(time_buckets: { user_id: current_user.id })
+                                        .where(category: category)
+                                        .count
+          completed_in_category = completed_items.where(category: category).count
+
+          {
+            category: category,
+            total: total_in_category,
+            completed: completed_in_category,
+            achievement_rate: total_in_category.zero? ? 0 : ((completed_in_category.to_f / total_in_category) * 100).round(2)
+          }
+        end
+
+        # Bucket-wise completion data
+        bucket_completions = current_user.time_buckets.map do |bucket|
+          bucket_completed = completed_items.where(time_bucket_id: bucket.id)
+          bucket_total = bucket.bucket_items.count
+
+          {
+            bucket_id: bucket.id,
+            label: bucket.label,
+            start_age: bucket.start_age,
+            end_age: bucket.end_age,
+            completed_count: bucket_completed.count,
+            total_count: bucket_total,
+            cumulative_cost: bucket_completed.sum(:cost_estimate),
+            completion_rate: bucket_total.zero? ? 0 : ((bucket_completed.count.to_f / bucket_total) * 100).round(2)
+          }
+        end
+
+        render json: {
+          total_completed: total_items,
+          total_cost: total_cost,
+          category_achievements: category_achievements,
+          bucket_completions: bucket_completions,
+          items: completed_items.joins(:time_bucket)
+                               .select("bucket_items.*, time_buckets.label as bucket_label, time_buckets.start_age, time_buckets.end_age")
+                               .map do |item|
+            {
+              id: item.id,
+              title: item.title,
+              category: item.category,
+              cost_estimate: item.cost_estimate,
+              target_year: item.target_year,
+              bucket_label: item.bucket_label,
+              bucket_age_range: "#{item.start_age}-#{item.end_age}"
+            }
+          end
+        }
+      end
+
       private
 
       def calculate_bucket_density
