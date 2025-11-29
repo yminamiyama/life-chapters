@@ -53,7 +53,8 @@ RSpec.describe BucketItem, type: :model do
         item = build(:bucket_item, time_bucket: bucket, target_year: 2025)
         
         # Simulate the scenario where birth_year returns nil
-        allow(user_with_birthdate).to receive(:birth_year).and_return(nil)
+        # Mock on bucket.user since validation accesses user through time_bucket.user
+        allow(bucket.user).to receive(:birth_year).and_return(nil)
         
         expect(item).not_to be_valid
         expect(item.errors[:target_year]).to include("cannot be validated without user's birth year")
