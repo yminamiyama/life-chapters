@@ -114,8 +114,7 @@ module Api
           total_cost: total_cost,
           category_achievements: category_achievements,
           bucket_completions: bucket_completions,
-          items: completed_items.joins(:time_bucket)
-                               .select("bucket_items.*, time_buckets.label as bucket_label, time_buckets.start_age, time_buckets.end_age")
+          items: completed_items.select("bucket_items.*, time_buckets.label as bucket_label, time_buckets.start_age, time_buckets.end_age")
                                .map do |item|
             {
               id: item.id,
