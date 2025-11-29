@@ -96,20 +96,28 @@ module Api
           }
         end
 
-        # Bucket-wise completion data
+        # Bucket-wise completion data (preload aggregations to avoid N+1 queries)
+        bucket_item_counts = BucketItem.joins(:time_bucket)
+                                       .where(time_buckets: { user_id: current_user.id })
+                                       .group(:time_bucket_id)
+                                       .count
+        bucket_completed_counts = completed_items.group(:time_bucket_id).count
+        bucket_completed_costs = completed_items.group(:time_bucket_id).sum(:cost_estimate)
+
         bucket_completions = current_user.time_buckets.map do |bucket|
-          bucket_completed = completed_items.where(time_bucket_id: bucket.id)
-          bucket_total = bucket.bucket_items.count
+          bucket_total = bucket_item_counts[bucket.id] || 0
+          completed_count = bucket_completed_counts[bucket.id] || 0
+          cumulative_cost = bucket_completed_costs[bucket.id] || 0
 
           {
             bucket_id: bucket.id,
             label: bucket.label,
             start_age: bucket.start_age,
             end_age: bucket.end_age,
-            completed_count: bucket_completed.count,
+            completed_count: completed_count,
             total_count: bucket_total,
-            cumulative_cost: bucket_completed.sum(:cost_estimate),
-            completion_rate: bucket_total.zero? ? 0 : ((bucket_completed.count.to_f / bucket_total) * 100).round(2)
+            cumulative_cost: cumulative_cost,
+            completion_rate: bucket_total.zero? ? 0 : ((completed_count.to_f / bucket_total) * 100).round(2)
           }
         end
 
