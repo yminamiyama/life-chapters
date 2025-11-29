@@ -33,8 +33,6 @@ module Api
 
       def calculate_category_distribution(items)
         total = items.count
-        return [] if total.zero?
-
         distribution = items.group_by(&:category).transform_values(&:count)
         
         BucketItem::CATEGORIES.map do |category|
