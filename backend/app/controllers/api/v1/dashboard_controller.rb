@@ -39,7 +39,7 @@ module Api
           year_diff = item.target_year - current_year
           reason = if year_diff < 0
             "overdue"
-          elsif year_diff.abs <= threshold_years
+          elsif year_diff <= threshold_years
             "approaching"
           end
 
