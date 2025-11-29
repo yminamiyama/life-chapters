@@ -12,33 +12,52 @@ RSpec.describe BucketItem, type: :model do
     it { should validate_presence_of(:category) }
     it { should validate_presence_of(:status) }
     it { should validate_presence_of(:value_statement) }
+    it { should validate_presence_of(:target_year) }
 
     it { should validate_inclusion_of(:category).in_array(%w[travel career family finance health learning other]) }
     it { should validate_inclusion_of(:difficulty).in_array(%w[low medium high]) }
     it { should validate_inclusion_of(:risk_level).in_array(%w[low medium high]) }
     it { should validate_inclusion_of(:status).in_array(%w[planned in_progress done]) }
 
+    it { should validate_numericality_of(:target_year).only_integer }
     it { should validate_numericality_of(:cost_estimate).only_integer.is_greater_than_or_equal_to(0) }
 
     context 'target_year validation' do
       let(:user) { create(:user, birthdate: Date.new(1990, 1, 1)) }
       let(:time_bucket) { create(:time_bucket, user: user, start_age: 30, end_age: 39) }
 
-      it 'is valid when target_year is within bucket range' do
-        item = build(:bucket_item, time_bucket: time_bucket, target_year: 2020)
-        expect(item).to be_valid
+      it 'is valid when target_year is at bucket range boundaries' do
+        # User born 1990, age 30-39 = years 2020-2029
+        start_item = build(:bucket_item, time_bucket: time_bucket, target_year: 2020)
+        end_item = build(:bucket_item, time_bucket: time_bucket, target_year: 2029)
+        
+        expect(start_item).to be_valid
+        expect(end_item).to be_valid
       end
 
       it 'is invalid when target_year is before bucket range' do
         item = build(:bucket_item, time_bucket: time_bucket, target_year: 2015)
         expect(item).not_to be_valid
-        expect(item.errors[:target_year]).to be_present
+        expect(item.errors[:target_year]).to include('must be between 2020 and 2029 (age 30-39) for this bucket')
       end
 
       it 'is invalid when target_year is after bucket range' do
         item = build(:bucket_item, time_bucket: time_bucket, target_year: 2030)
         expect(item).not_to be_valid
-        expect(item.errors[:target_year]).to be_present
+        expect(item.errors[:target_year]).to include('must be between 2020 and 2029 (age 30-39) for this bucket')
+      end
+
+      it 'is invalid when user has no birth_year' do
+        user_with_birthdate = create(:user, birthdate: Date.new(1990, 1, 1))
+        bucket = create(:time_bucket, user: user_with_birthdate, start_age: 30, end_age: 39)
+        item = build(:bucket_item, time_bucket: bucket, target_year: 2025)
+        
+        # Simulate the scenario where birth_year returns nil
+        # Mock on bucket.user since validation accesses user through time_bucket.user
+        allow(bucket.user).to receive(:birth_year).and_return(nil)
+        
+        expect(item).not_to be_valid
+        expect(item.errors[:target_year]).to include("cannot be validated without user's birth year")
       end
     end
 
