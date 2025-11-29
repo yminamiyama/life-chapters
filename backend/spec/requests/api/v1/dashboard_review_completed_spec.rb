@@ -135,7 +135,7 @@ RSpec.describe "Api::V1::Dashboard Review Completed", type: :request do
         learning = category_achievements.find { |c| c["category"] == "learning" }
         expect(learning["total"]).to eq(0)
         expect(learning["completed"]).to eq(0)
-        expect(learning["achievement_rate"]).to eq(0)
+        expect(learning["achievement_rate"]).to eq(0.0)
       end
     end
 
