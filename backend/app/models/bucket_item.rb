@@ -33,6 +33,10 @@ class BucketItem < ApplicationRecord
     return unless time_bucket && target_year
 
     user = time_bucket.user
+    
+    # Defensive check: Although User model requires birthdate, this protects against
+    # edge cases like data migration, manual DB manipulation, or future schema changes
+    # where birth_year (derived from birthdate) might not be available
     unless user&.birth_year
       errors.add(:target_year, "cannot be validated without user's birth year")
       return
