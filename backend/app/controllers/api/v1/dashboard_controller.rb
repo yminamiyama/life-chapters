@@ -5,7 +5,8 @@ module Api
 
       # GET /api/v1/dashboard/summary
       def summary
-        bucket_items = current_user.time_buckets.includes(:bucket_items).flat_map(&:bucket_items)
+        # Fetch all bucket items for stats calculation in a single query
+        bucket_items = BucketItem.joins(:time_bucket).where(time_buckets: { user_id: current_user.id })
         
         render json: {
           bucket_density: calculate_bucket_density,
