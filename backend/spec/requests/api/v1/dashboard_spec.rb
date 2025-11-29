@@ -19,8 +19,19 @@ RSpec.describe 'Api::V1::Dashboard', type: :request do
         expect(json['total_items']).to eq(0)
         expect(json['total_buckets']).to eq(2)
         expect(json['bucket_density']).to be_an(Array)
+        expect(json['bucket_density'].length).to eq(2)
+        
+        # All categories should be included even when there are no items
         expect(json['category_distribution']).to be_an(Array)
+        expect(json['category_distribution'].length).to eq(BucketItem::CATEGORIES.length)
+        json['category_distribution'].each do |category|
+          expect(category['count']).to eq(0)
+          expect(category['percentage']).to eq(0.0)
+        end
+        
         expect(json['completion_stats']).to be_a(Hash)
+        expect(json['completion_stats']['total']).to eq(0)
+        expect(json['completion_stats']['completion_rate']).to eq(0)
       end
 
       it 'returns correct bucket density' do
