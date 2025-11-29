@@ -31,7 +31,7 @@ RSpec.describe "Api::V1::Dashboard Actions Now", type: :request do
         create(:bucket_item, 
                time_bucket: bucket_past, 
                title: "Overdue task",
-               target_year: 2018,  # Overdue (current is 2025)
+               target_year: 2018,  # Within bucket range, overdue
                status: :planned)
       end
 
@@ -40,7 +40,7 @@ RSpec.describe "Api::V1::Dashboard Actions Now", type: :request do
         create(:bucket_item, 
                time_bucket: bucket_now, 
                title: "Upcoming task",
-               target_year: 2028,  # 3 years from now
+               target_year: [current_year + 3, 2029].min,  # 3 years from now, within bucket range
                status: :in_progress)
       end
 
@@ -49,7 +49,7 @@ RSpec.describe "Api::V1::Dashboard Actions Now", type: :request do
         create(:bucket_item, 
                time_bucket: bucket_future, 
                title: "Threshold task",
-               target_year: 2030,  # 5 years from now (bucket 40-49 = 2030-2039)
+               target_year: [current_year + 5, 2039].min,  # 5 years from now, within bucket range
                status: :planned)
       end
 
@@ -58,7 +58,7 @@ RSpec.describe "Api::V1::Dashboard Actions Now", type: :request do
         create(:bucket_item, 
                time_bucket: bucket_future, 
                title: "Future task",
-               target_year: 2036,  # 11 years from now
+               target_year: [current_year + 11, 2039].min,  # 11 years from now, within bucket range
                status: :planned)
       end
 
