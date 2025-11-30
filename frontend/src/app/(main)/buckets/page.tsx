@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Calendar, DollarSign, Tag, CheckCircle2 } from "lucide-react";
+import { Plus, Calendar, DollarSign, Tag, CheckCircle2, Pencil } from "lucide-react";
 import { useBuckets, useUser } from "@/hooks/use-buckets";
 import BucketCard from "@/components/BucketCard";
 import { ItemStatus, BucketItem } from "@/types";
@@ -9,13 +9,14 @@ import { CATEGORY_CONFIG, RISK_CONFIG, STATUS_CONFIG } from "@/constants";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { CreateItemDialog } from "@/components/buckets/CreateItemDialog";
+import { BucketItemDialog } from "@/components/buckets/BucketItemDialog";
 
 export default function BucketListPage() {
   const { buckets, updateItem, createItem, isLoading, isError } = useBuckets();
   const { user } = useUser();
   const [selectedBucketId, setSelectedBucketId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<BucketItem | null>(null);
 
   const formatYen = (amount: number) => `¥${amount.toLocaleString()}`;
 
@@ -45,7 +46,12 @@ export default function BucketListPage() {
       }
     }
 
-    await createItem(selectedBucket.id, payload);
+    if (editingItem) {
+      await updateItem(selectedBucket.id, editingItem.id, payload);
+    } else {
+      await createItem(selectedBucket.id, payload);
+    }
+    setEditingItem(null);
   };
 
   if (isLoading) {
@@ -94,7 +100,10 @@ export default function BucketListPage() {
                 </div>
                 <button
                   className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium"
-                  onClick={() => setDialogOpen(true)}
+                  onClick={() => {
+                    setEditingItem(null);
+                    setDialogOpen(true);
+                  }}
                 >
                   <Plus size={18} />
                   体験を追加
@@ -109,7 +118,10 @@ export default function BucketListPage() {
                   <p>この人生のステージにはまだ計画がありません。</p>
                   <button
                     className="text-primary font-medium mt-2 hover:underline"
-                    onClick={() => setDialogOpen(true)}
+                    onClick={() => {
+                      setEditingItem(null);
+                      setDialogOpen(true);
+                    }}
                   >
                     最初のアイテムを追加する
                   </button>
@@ -142,9 +154,21 @@ export default function BucketListPage() {
                             <h3 className={cn("font-bold text-lg", isDone ? "text-muted-foreground line-through" : "text-foreground")}>
                               {item.title}
                             </h3>
-                            <Badge className={cn("text-[10px]", STATUS_CONFIG[item.status].color)}>
-                              {STATUS_CONFIG[item.status].label}
-                            </Badge>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => {
+                                  setEditingItem(item);
+                                  setDialogOpen(true);
+                                }}
+                                className="p-1 rounded hover:bg-accent text-muted-foreground"
+                                title="編集"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                              <Badge className={cn("text-[10px]", STATUS_CONFIG[item.status].color)}>
+                                {STATUS_CONFIG[item.status].label}
+                              </Badge>
+                            </div>
                           </div>
 
                           <p className="text-muted-foreground text-sm mt-1">{item.description}</p>
@@ -185,9 +209,13 @@ export default function BucketListPage() {
         )}
       </Card>
 
-      <CreateItemDialog
+      <BucketItemDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        item={editingItem}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingItem(null);
+        }}
         defaultTargetYear={
           selectedBucket && user?.birthdate
             ? new Date(user.birthdate).getFullYear() + selectedBucket.startAge

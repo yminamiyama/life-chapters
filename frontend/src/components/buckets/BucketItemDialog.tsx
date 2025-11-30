@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { Category, Difficulty, RiskLevel, ItemStatus, BucketItem } from "@/types";
+import React, { useEffect, useState } from "react";
+import { BucketItem, Category, Difficulty, ItemStatus, RiskLevel } from "@/types";
 import { CATEGORY_CONFIG, DIFFICULTY_CONFIG, RISK_CONFIG } from "@/constants";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
-interface CreateItemDialogProps {
+interface BucketItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Partial<BucketItem>) => Promise<void>;
+  onSubmit: (data: Partial<BucketItem>, editingItem?: BucketItem | null) => Promise<void>;
   defaultTargetYear: number;
+  item?: BucketItem | null;
 }
 
-export function CreateItemDialog({ open, onOpenChange, onSubmit, defaultTargetYear }: CreateItemDialogProps) {
+export function BucketItemDialog({ open, onOpenChange, onSubmit, defaultTargetYear, item }: BucketItemDialogProps) {
+  const isEdit = !!item;
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     valueStatement: "",
@@ -22,38 +25,57 @@ export function CreateItemDialog({ open, onOpenChange, onSubmit, defaultTargetYe
     costEstimate: 0,
     targetYear: defaultTargetYear,
   });
-  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
-      setFormData((prev) => ({ ...prev, targetYear: defaultTargetYear }));
+      setFormError(null);
+      if (item) {
+        setFormData({
+          title: item.title,
+          valueStatement: item.valueStatement ?? "",
+          category: item.category,
+          difficulty: item.difficulty,
+          riskLevel: item.riskLevel,
+          costEstimate: item.costEstimate ?? 0,
+          targetYear: item.targetYear ?? defaultTargetYear,
+        });
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          title: "",
+          valueStatement: "",
+          category: Category.LEISURE,
+          difficulty: Difficulty.MEDIUM,
+          riskLevel: RiskLevel.LOW,
+          costEstimate: 0,
+          targetYear: defaultTargetYear,
+        }));
+      }
     }
-  }, [open, defaultTargetYear]);
+  }, [open, item, defaultTargetYear]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.title.trim()) {
+      setFormError("タイトルを入力してください。");
+      return;
+    }
     if (!formData.valueStatement.trim()) {
       setFormError("価値・意味を入力してください。");
       return;
     }
     setIsLoading(true);
     try {
-      await onSubmit({
-        ...formData,
-        status: ItemStatus.PLANNED,
-        costEstimate: Number(formData.costEstimate),
-        targetYear: Number(formData.targetYear),
-      });
+      await onSubmit(
+        {
+          ...formData,
+          status: item?.status ?? ItemStatus.PLANNED,
+          costEstimate: Number(formData.costEstimate),
+          targetYear: Number(formData.targetYear),
+        },
+        item
+      );
       onOpenChange(false);
-      setFormData({
-        title: "",
-        valueStatement: "",
-        category: Category.LEISURE,
-        difficulty: Difficulty.MEDIUM,
-        riskLevel: RiskLevel.LOW,
-        costEstimate: 0,
-        targetYear: defaultTargetYear,
-      });
       setFormError(null);
     } catch (error) {
       console.error(error);
@@ -80,13 +102,17 @@ export function CreateItemDialog({ open, onOpenChange, onSubmit, defaultTargetYe
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-5 border-b">
-          <p className="text-base font-semibold">新しい体験を追加</p>
-          <p className="text-xs text-muted-foreground mt-1">この時期にやりたいことを具体的に書きましょう。</p>
+          <p className="text-base font-semibold">{isEdit ? "体験を更新" : "新しい体験を追加"}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {isEdit ? "内容を更新して保存してください。" : "この時期にやりたいことを具体的に書きましょう。"}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
           <div className="space-y-1">
-            <label className="text-sm font-medium">タイトル <span className="text-red-500">*</span></label>
+            <label className="text-sm font-medium">
+              タイトル <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="title"
@@ -99,14 +125,16 @@ export function CreateItemDialog({ open, onOpenChange, onSubmit, defaultTargetYe
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium">価値・意味 (Why) <span className="text-red-500">*</span></label>
+            <label className="text-sm font-medium">
+              価値・意味 (Why) <span className="text-red-500">*</span>
+            </label>
             <textarea
               name="valueStatement"
               rows={2}
+              required
               placeholder="なぜこれをやりたい？どんな思い出（配当）になる？"
               value={formData.valueStatement}
               onChange={handleChange}
-              required
               className="flex min-h-[60px] w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
             {formError && <p className="text-xs text-destructive">{formError}</p>}
@@ -219,7 +247,7 @@ export function CreateItemDialog({ open, onOpenChange, onSubmit, defaultTargetYe
               className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 min-w-[100px] disabled:opacity-60"
             >
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              追加する
+              {isEdit ? "更新する" : "追加する"}
             </button>
           </div>
         </form>
