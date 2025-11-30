@@ -46,7 +46,7 @@ export class ApiError extends Error {
   }
 }
 
-const fetchJson = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+const fetchJson = async <T>(url: string, options: RequestInit = {}): Promise<T | null> => {
   const res = await fetch(url, {
     credentials: "include", // send session cookies for auth
     ...options,
@@ -109,6 +109,7 @@ const patchProfile = async (body: Partial<UserProfile>): Promise<UserProfile> =>
     method: "PATCH",
     body: JSON.stringify(body),
   });
+  if (!data) throw new ApiError(500, "Empty profile response");
   return mapUserProfile(data);
 };
 
@@ -116,11 +117,13 @@ const RealApiClient = {
   get: async <T>(path: string): Promise<T> => {
     if (path === "/user") {
       const data = await fetchJson<ApiUser>(`${API_BASE_URL}/profile`);
+      if (!data) throw new ApiError(500, "Empty profile response");
       return mapUserProfile(data) as T;
     }
 
     if (path === "/buckets") {
       const bucketsData = await fetchJson<ApiTimeBucket[]>(`${API_BASE_URL}/time_buckets`);
+      if (!bucketsData) throw new ApiError(500, "Empty buckets response");
       const buckets = bucketsData.map(mapTimeBucket);
 
       const bucketsWithItems = await Promise.all(
@@ -129,7 +132,7 @@ const RealApiClient = {
             const itemsData = await fetchJson<ApiBucketItem[]>(
               `${API_BASE_URL}/time_buckets/${bucket.id}/bucket_items`
             );
-            return { ...bucket, items: itemsData.map(mapBucketItem) };
+            return { ...bucket, items: itemsData ? itemsData.map(mapBucketItem) : [] };
           } catch (e) {
             console.error(`Failed to fetch items for bucket ${bucket.id}`, e);
             return bucket;
@@ -160,6 +163,7 @@ const RealApiClient = {
           body: JSON.stringify(apiBody),
         }
       );
+      if (!data) throw new ApiError(500, "Empty item response");
       return mapBucketItem(data) as T;
     }
 

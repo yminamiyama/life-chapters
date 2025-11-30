@@ -1,12 +1,13 @@
 import useSWR from "swr";
-import { apiClient } from "@/lib/api-client";
+import { apiClient, ApiError } from "@/lib/api-client";
 import { BucketItem, TimeBucket, UserProfile } from "@/types";
 
-const fetcher = (url: string) => apiClient.get(url);
+const fetchUser = () => apiClient.get<UserProfile>("/user");
+const fetchBuckets = () => apiClient.get<TimeBucket[]>("/buckets");
 
 export function useUser() {
-  const { data, error, isLoading, mutate } = useSWR<UserProfile>("/user", fetcher, {
-    shouldRetryOnError: (err) => err?.status !== 401,
+  const { data, error, isLoading, mutate } = useSWR<UserProfile>("/user", fetchUser, {
+    shouldRetryOnError: (err) => (err as ApiError | undefined)?.status !== 401,
   });
 
   const updateUser = async (updates: Partial<UserProfile>) => {
@@ -30,8 +31,8 @@ export function useUser() {
 }
 
 export function useBuckets() {
-  const { data, error, isLoading, mutate } = useSWR<TimeBucket[]>("/buckets", fetcher, {
-    shouldRetryOnError: (err) => err?.status !== 401,
+  const { data, error, isLoading, mutate } = useSWR<TimeBucket[]>("/buckets", fetchBuckets, {
+    shouldRetryOnError: (err) => (err as ApiError | undefined)?.status !== 401,
   });
 
   const updateItem = async (bucketId: string, itemId: string, updates: Partial<BucketItem>) => {
