@@ -53,7 +53,7 @@ RSpec.describe 'api/v1/notification_settings', type: :request do
         properties: {
           email_enabled: { type: :boolean, example: true },
           slack_webhook_url: { type: :string, format: :uri, example: 'https://hooks.slack.com/services/XXX' },
-          digest_time: { type: :string, pattern: '^\d{2}:\d{2}$', example: '09:00' },
+          digest_time: { type: :string, pattern: '^([01]\d|2[0-3]):[0-5]\d$', example: '09:00' },
           events: {
             type: :object,
             properties: {
