@@ -1,0 +1,40 @@
+"use client";
+
+import { BACKEND_BASE_URL, API_BASE_URL } from "@/lib/api-client";
+import { ShieldCheck, LogIn } from "lucide-react";
+
+export default function LoginPage() {
+  const handleSignIn = () => {
+    // 認証エンドポイントは /auth/google_oauth2 (API prefixなし)
+    const base = BACKEND_BASE_URL || API_BASE_URL.replace(/\/api\/v1$/, "");
+    window.location.href = `${base}/auth/google_oauth2`;
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="bg-white rounded-2xl shadow-lg border w-full max-w-md p-8 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-full bg-brand-50 text-brand-600">
+            <ShieldCheck size={28} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">TimeBucket へログイン</h1>
+            <p className="text-sm text-muted-foreground">Googleで認証してダッシュボードに進みます。</p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSignIn}
+          className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl font-semibold hover:bg-primary/90 transition-colors shadow-sm"
+        >
+          <LogIn size={18} />
+          Sign in with Google
+        </button>
+
+        <p className="text-xs text-muted-foreground text-center">
+          サインインすると、バックエンドの認証エンドポイントへリダイレクトします。
+        </p>
+      </div>
+    </div>
+  );
+}
