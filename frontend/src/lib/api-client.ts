@@ -18,6 +18,7 @@ type ApiBucketItem = {
   status: BucketItem["status"];
   target_year: number;
   value_statement: string;
+  completed_at?: string | null;
   completed_at?: string;
   created_at?: string;
   updated_at?: string;
@@ -94,7 +95,7 @@ const mapBucketItem = (apiItem: ApiBucketItem): BucketItem => ({
   targetYear: apiItem.target_year,
   valueStatement: apiItem.value_statement,
   description: apiItem.value_statement || "",
-  completedAt: apiItem.completed_at,
+  completedAt: apiItem.completed_at || undefined,
   createdAt: apiItem.created_at,
   updatedAt: apiItem.updated_at,
 });
@@ -214,6 +215,7 @@ const RealApiClient = {
       if (body.costEstimate !== undefined) apiBody.cost_estimate = body.costEstimate;
       if (body.targetYear) apiBody.target_year = body.targetYear;
       if (body.valueStatement) apiBody.value_statement = body.valueStatement;
+      if (body.completedAt !== undefined) apiBody.completed_at = body.completedAt;
 
       const data = await fetchJson<ApiBucketItem>(
         `${API_BASE_URL}/bucket_items/${itemId}`,
