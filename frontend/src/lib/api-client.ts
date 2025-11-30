@@ -234,10 +234,14 @@ const RealApiClient = {
     const match = path.match(/\/bucket_items\/(.+)/);
     if (match) {
       const itemId = match[1];
-      const data = await fetchJson<ApiBucketItem>(`${API_BASE_URL}/bucket_items/${itemId}`, {
+      const data = await fetchJson<ApiBucketItem | null>(`${API_BASE_URL}/bucket_items/${itemId}`, {
         method: "DELETE",
       });
-      return (data ? mapBucketItem(data) : (null as unknown as T));
+      if (data) {
+        return mapBucketItem(data) as T;
+      }
+      // DELETE may return no content
+      return null as unknown as T;
     }
     throw new ApiError(400, "Invalid delete path. Expected /bucket_items/:itemId");
   },
