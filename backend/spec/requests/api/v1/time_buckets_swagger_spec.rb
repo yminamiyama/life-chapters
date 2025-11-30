@@ -58,7 +58,7 @@ RSpec.describe 'api/v1/time_buckets', type: :request do
         properties: {
           start_age: { type: :integer, example: 30 },
           end_age: { type: :integer, example: 35 },
-          granularity: { type: :string, enum: ['5y', '1y', 'quarter'], example: '5y' },
+          granularity: { type: :string, enum: ['5y', '10y'], example: '5y' },
           description: { type: :string, example: 'Career building phase' }
         },
         required: ['start_age', 'end_age', 'granularity']

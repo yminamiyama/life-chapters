@@ -727,8 +727,7 @@ paths:
                   type: string
                   enum:
                   - 5y
-                  - 1y
-                  - quarter
+                  - 10y
                   example: 5y
                 description:
                   type: string

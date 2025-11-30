@@ -85,10 +85,10 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         type: :object,
         properties: {
           title: { type: :string, example: 'Learn a new language' },
-          category: { type: :string, enum: ['learning', 'career', 'relationships', 'health', 'finance', 'personal_growth', 'hobbies', 'other'], example: 'learning' },
+          category: { type: :string, enum: ['travel', 'career', 'family', 'finance', 'health', 'learning', 'other'], example: 'travel' },
           value_statement: { type: :string, example: 'Expand cultural understanding' },
-          difficulty: { type: :integer, minimum: 1, maximum: 5, example: 3 },
-          risk_level: { type: :integer, minimum: 1, maximum: 5, example: 2 },
+          difficulty: { type: :string, enum: ['low', 'medium', 'high'], example: 'medium' },
+          risk_level: { type: :string, enum: ['low', 'medium', 'high'], example: 'medium' },
           cost_estimate: { type: :integer, example: 50000 },
           target_year: { type: :integer, example: 2025 }
         },
@@ -259,10 +259,10 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         type: :object,
         properties: {
           title: { type: :string },
-          category: { type: :string, enum: ['learning', 'career', 'relationships', 'health', 'finance', 'personal_growth', 'hobbies', 'other'] },
+          category: { type: :string, enum: ['travel', 'career', 'family', 'finance', 'health', 'learning', 'other'] },
           value_statement: { type: :string },
-          difficulty: { type: :integer, minimum: 1, maximum: 5 },
-          risk_level: { type: :integer, minimum: 1, maximum: 5 },
+          difficulty: { type: :string, enum: ['low', 'medium', 'high'] },
+          risk_level: { type: :string, enum: ['low', 'medium', 'high'] },
           cost_estimate: { type: :integer },
           target_year: { type: :integer },
           status: { type: :string, enum: ['planned', 'in_progress', 'done'] }
