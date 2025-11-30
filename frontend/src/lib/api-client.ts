@@ -229,6 +229,22 @@ const RealApiClient = {
 
     throw new ApiError(400, "Invalid patch path. Expected /bucket_items/:itemId");
   },
+
+  delete: async <T>(path: string): Promise<T> => {
+    const match = path.match(/\/bucket_items\/(.+)/);
+    if (match) {
+      const itemId = match[1];
+      const data = await fetchJson<ApiBucketItem | null>(`${API_BASE_URL}/bucket_items/${itemId}`, {
+        method: "DELETE",
+      });
+      if (data) {
+        return mapBucketItem(data) as T;
+      }
+      // DELETE may return no content
+      return null as unknown as T;
+    }
+    throw new ApiError(400, "Invalid delete path. Expected /bucket_items/:itemId");
+  },
   patchProfile,
 };
 
@@ -288,6 +304,27 @@ const MockApiClient = {
     throw new ApiError(404, "Item not found in Mock DB");
   },
   patchProfile,
+
+  delete: async <T>(path: string): Promise<T> => {
+    await delay(DELAY / 2);
+    const parts = path.split("/");
+    const itemId = parts[parts.length - 1];
+
+    let deletedItem: BucketItem | undefined;
+    mockDb.buckets = mockDb.buckets.map((b) => {
+      const filtered = b.items.filter((i) => {
+        if (i.id === itemId) {
+          deletedItem = i;
+          return false;
+        }
+        return true;
+      });
+      return { ...b, items: filtered };
+    });
+
+    if (deletedItem) return deletedItem as T;
+    throw new ApiError(404, "Item not found in Mock DB");
+  },
 };
 
 export const apiClient = USE_MOCK ? MockApiClient : RealApiClient;

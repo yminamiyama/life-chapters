@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Calendar, DollarSign, Tag, CheckCircle2, Pencil } from "lucide-react";
+import { Plus, Calendar, DollarSign, Tag, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { useBuckets, useUser } from "@/hooks/use-buckets";
 import BucketCard from "@/components/BucketCard";
 import { ItemStatus, BucketItem } from "@/types";
@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { BucketItemDialog } from "@/components/buckets/BucketItemDialog";
 
 export default function BucketListPage() {
-  const { buckets, updateItem, createItem, isLoading, isError } = useBuckets();
+  const { buckets, updateItem, createItem, deleteItem, isLoading, isError } = useBuckets();
   const { user } = useUser();
   const [selectedBucketId, setSelectedBucketId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -55,6 +55,12 @@ export default function BucketListPage() {
       await createItem(selectedBucket.id, payload);
     }
     setEditingItem(null);
+  };
+
+  const handleDeleteItem = async (bucketId: string, itemId: string) => {
+    const ok = window.confirm("この体験を削除しますか？");
+    if (!ok) return;
+    await deleteItem(bucketId, itemId);
   };
 
   if (isLoading) {
@@ -167,6 +173,13 @@ export default function BucketListPage() {
                                 title="編集"
                               >
                                 <Pencil size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteItem(selectedBucket.id, item.id)}
+                                className="p-1 rounded hover:bg-accent text-destructive"
+                                title="削除"
+                              >
+                                <Trash2 size={14} />
                               </button>
                               <Badge className={cn("text-[10px]", STATUS_CONFIG[item.status].color)}>
                                 {STATUS_CONFIG[item.status].label}
