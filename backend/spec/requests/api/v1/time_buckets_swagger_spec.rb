@@ -68,7 +68,7 @@ RSpec.describe 'api/v1/time_buckets', type: :request do
         schema '$ref' => '#/components/schemas/TimeBucket'
         
         let(:user) { create(:user) }
-        let(:time_bucket) { { start_age: 30, end_age: 35, granularity: '5y' } }
+        let(:time_bucket) { { start_age: 30, end_age: 35, granularity: '5y', label: '30-35歳' } }
         
         let(:user_session) { create(:session, user: user) }
         

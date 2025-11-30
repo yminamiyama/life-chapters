@@ -98,10 +98,10 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
       response(201, 'created') do
         schema '$ref' => '#/components/schemas/BucketItem'
         
-        let(:user) { create(:user) }
-        let(:bucket) { create(:time_bucket, user: user) }
+        let(:user) { create(:user, birthdate: '1990-01-01') }
+        let(:bucket) { create(:time_bucket, user: user, start_age: 40, end_age: 49, granularity: '10y', label: '40-49歳') }
         let(:time_bucket_id) { bucket.id }
-        let(:bucket_item) { { title: 'Learn Japanese', category: 'learning' } }
+        let(:bucket_item) { { title: 'Learn Japanese', category: 'learning', value_statement: 'Personal growth and cultural understanding', target_year: 2035 } }
         
         let(:user_session) { create(:session, user: user) }
         
@@ -118,7 +118,7 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['title']).to eq('Learn Japanese')
-          expect(data['status']).to eq('active')
+          expect(data['status']).to eq('planned')
         end
       end
 
@@ -179,8 +179,7 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
     end
   end
 
-  path '/api/v1/time_buckets/{time_bucket_id}/bucket_items/{id}' do
-    parameter name: :time_bucket_id, in: :path, type: :integer, description: 'Time bucket ID'
+  path '/api/v1/bucket_items/{id}' do
     parameter name: :id, in: :path, type: :integer, description: 'Bucket item ID'
 
     get('Show bucket item') do
@@ -195,7 +194,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         let(:user) { create(:user) }
         let(:bucket) { create(:time_bucket, user: user) }
         let(:item) { create(:bucket_item, time_bucket: bucket) }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { item.id }
         
         let(:user_session) { create(:session, user: user) }
@@ -244,7 +242,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         
         let(:bucket) { create(:time_bucket) }
         let(:item) { create(:bucket_item, time_bucket: bucket) }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { item.id }
         
         run_test!
@@ -268,7 +265,7 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
           risk_level: { type: :integer, minimum: 1, maximum: 5 },
           estimated_cost: { type: :integer },
           target_year: { type: :integer },
-          status: { type: :string, enum: ['active', 'completed', 'archived'] }
+          status: { type: :string, enum: ['planned', 'in_progress', 'done'] }
         }
       }
 
@@ -278,7 +275,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         let(:user) { create(:user) }
         let(:bucket) { create(:time_bucket, user: user) }
         let(:item) { create(:bucket_item, time_bucket: bucket, title: 'Old') }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { item.id }
         let(:bucket_item) { { title: 'Updated title' } }
         
@@ -304,8 +300,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         schema '$ref' => '#/components/schemas/Error'
         
         let(:user) { create(:user) }
-        let(:bucket) { create(:time_bucket, user: user) }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { 99999 }
         let(:bucket_item) { { title: 'New' } }
         
@@ -329,7 +323,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         
         let(:bucket) { create(:time_bucket) }
         let(:item) { create(:bucket_item, time_bucket: bucket) }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { item.id }
         let(:bucket_item) { { title: 'New' } }
         
@@ -346,7 +339,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         let(:user) { create(:user) }
         let(:bucket) { create(:time_bucket, user: user) }
         let(:item) { create(:bucket_item, time_bucket: bucket) }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { item.id }
         
         let(:user_session) { create(:session, user: user) }
@@ -368,8 +360,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         schema '$ref' => '#/components/schemas/Error'
         
         let(:user) { create(:user) }
-        let(:bucket) { create(:time_bucket, user: user) }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { 99999 }
         
         let(:user_session) { create(:session, user: user) }
@@ -392,7 +382,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         
         let(:bucket) { create(:time_bucket) }
         let(:item) { create(:bucket_item, time_bucket: bucket) }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { item.id }
         
         run_test!
@@ -400,8 +389,7 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
     end
   end
 
-  path '/api/v1/time_buckets/{time_bucket_id}/bucket_items/{id}/complete' do
-    parameter name: :time_bucket_id, in: :path, type: :integer, description: 'Time bucket ID'
+  path '/api/v1/bucket_items/{id}/complete' do
     parameter name: :id, in: :path, type: :integer, description: 'Bucket item ID'
 
     patch('Mark bucket item as completed') do
@@ -415,8 +403,7 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         
         let(:user) { create(:user) }
         let(:bucket) { create(:time_bucket, user: user) }
-        let(:item) { create(:bucket_item, time_bucket: bucket, status: 'active') }
-        let(:time_bucket_id) { bucket.id }
+        let(:item) { create(:bucket_item, time_bucket: bucket, status: 'in_progress') }
         let(:id) { item.id }
         
         let(:user_session) { create(:session, user: user) }
@@ -433,7 +420,7 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['status']).to eq('completed')
+          expect(data['status']).to eq('done')
           expect(data['completed_at']).to be_present
         end
       end
@@ -442,8 +429,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         schema '$ref' => '#/components/schemas/Error'
         
         let(:user) { create(:user) }
-        let(:bucket) { create(:time_bucket, user: user) }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { 99999 }
         
         let(:user_session) { create(:session, user: user) }
@@ -466,7 +451,6 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
         
         let(:bucket) { create(:time_bucket) }
         let(:item) { create(:bucket_item, time_bucket: bucket) }
-        let(:time_bucket_id) { bucket.id }
         let(:id) { item.id }
         
         run_test!

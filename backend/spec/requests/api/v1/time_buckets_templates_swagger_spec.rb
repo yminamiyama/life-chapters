@@ -7,12 +7,25 @@ RSpec.describe 'api/v1/time_buckets/templates', type: :request do
       description 'Generates time bucket templates based on user age (20-100 years old, 5-year intervals)'
       produces 'application/json'
       parameter name: :Cookie, in: :header, type: :string, required: false, description: 'Session cookie'
+      
+      parameter name: :granularity, in: :query, type: :string, required: true, 
+        enum: ['5y', '10y'], 
+        description: 'Time interval for templates'
 
       response(201, 'templates created') do
-        schema type: :array,
-          items: { '$ref' => '#/components/schemas/TimeBucket' }
+        schema type: :object,
+          properties: {
+            message: { type: :string },
+            count: { type: :integer },
+            buckets: {
+              type: :array,
+              items: { '$ref' => '#/components/schemas/TimeBucket' }
+            }
+          },
+          required: ['message', 'count', 'buckets']
         
         let(:user) { create(:user, birthdate: '1990-01-01') }
+        let(:granularity) { '10y' }
         
         let(:user_session) { create(:session, user: user) }
         
@@ -28,10 +41,10 @@ RSpec.describe 'api/v1/time_buckets/templates', type: :request do
         
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data).to be_an(Array)
-          expect(data.length).to eq(16)  # (100-20)/5 = 16 buckets
-          expect(data.first['start_age']).to eq(20)
-          expect(data.last['end_age']).to eq(100)
+          expect(data['buckets']).to be_an(Array)
+          expect(data['count']).to eq(8)  # (100-20)/10 = 8 buckets for 10y granularity
+          expect(data['buckets'].first['start_age']).to eq(20)
+          expect(data['buckets'].last['end_age']).to eq(100)
         end
       end
 
@@ -39,6 +52,11 @@ RSpec.describe 'api/v1/time_buckets/templates', type: :request do
         schema '$ref' => '#/components/schemas/Error'
         
         let(:user) { create(:user) }
+        let(:granularity) { '10y' }
+        
+        before do
+          create(:time_bucket, user: user, start_age: 20, end_age: 29, granularity: '10y', label: '20-29歳')
+        end
         
         let(:user_session) { create(:session, user: user) }
         
@@ -51,21 +69,17 @@ RSpec.describe 'api/v1/time_buckets/templates', type: :request do
           jar.instance_variable_get(:@set_cookies).transform_values { |v| v[:value] }.map { |k, v| "#{k}=#{v}" }.join('; ')
         
         end
-
-        
-        before do
-          create(:time_bucket, user: user)
-        
-        end
         
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']).to be_present
+          expect(data['errors']).to be_present
         end
       end
 
       response(401, 'unauthorized') do
         schema '$ref' => '#/components/schemas/Error'
+        
+        let(:granularity) { '10y' }
         
         run_test!
       end

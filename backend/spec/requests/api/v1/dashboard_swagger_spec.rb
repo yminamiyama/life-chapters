@@ -11,13 +11,45 @@ RSpec.describe 'api/v1/dashboard', type: :request do
       response(200, 'successful') do
         schema type: :object,
           properties: {
-            total_buckets: { type: :integer, example: 16 },
-            total_items: { type: :integer, example: 42 },
-            completed_items: { type: :integer, example: 8 },
-            active_items: { type: :integer, example: 30 },
-            archived_items: { type: :integer, example: 4 }
+            bucket_density: {
+              type: :array,
+              items: {
+                type: :object,
+                properties: {
+                  bucket_id: { type: :string, format: :uuid },
+                  label: { type: :string },
+                  start_age: { type: :integer },
+                  end_age: { type: :integer },
+                  item_count: { type: :integer },
+                  total_cost: { type: :number }
+                }
+              }
+            },
+            category_distribution: {
+              type: :array,
+              items: {
+                type: :object,
+                properties: {
+                  category: { type: :string },
+                  count: { type: :integer },
+                  percentage: { type: :number }
+                }
+              }
+            },
+            completion_stats: {
+              type: :object,
+              properties: {
+                total: { type: :integer },
+                completed: { type: :integer },
+                in_progress: { type: :integer },
+                planned: { type: :integer },
+                completion_rate: { type: :number }
+              }
+            },
+            total_buckets: { type: :integer },
+            total_items: { type: :integer }
           },
-          required: ['total_buckets', 'total_items', 'completed_items', 'active_items', 'archived_items']
+          required: ['bucket_density', 'category_distribution', 'completion_stats', 'total_buckets', 'total_items']
         
         let(:user) { create(:user) }
         
@@ -36,8 +68,8 @@ RSpec.describe 'api/v1/dashboard', type: :request do
         
         before do
           bucket = create(:time_bucket, user: user)
-          create(:bucket_item, time_bucket: bucket, status: 'active')
-          create(:bucket_item, time_bucket: bucket, status: 'completed')
+          create(:bucket_item, time_bucket: bucket, status: 'in_progress')
+          create(:bucket_item, time_bucket: bucket, status: 'done', completed_at: Time.current)
         
         end
         
@@ -45,8 +77,8 @@ RSpec.describe 'api/v1/dashboard', type: :request do
           data = JSON.parse(response.body)
           expect(data['total_buckets']).to eq(1)
           expect(data['total_items']).to eq(2)
-          expect(data['completed_items']).to eq(1)
-          expect(data['active_items']).to eq(1)
+          expect(data['completion_stats']['completed']).to eq(1)
+          expect(data['completion_stats']['in_progress']).to eq(1)
         end
       end
 
@@ -66,8 +98,17 @@ RSpec.describe 'api/v1/dashboard', type: :request do
       parameter name: :Cookie, in: :header, type: :string, required: false, description: 'Session cookie'
 
       response(200, 'successful') do
-        schema type: :array,
-          items: { '$ref' => '#/components/schemas/BucketItem' }
+        schema type: :object,
+          properties: {
+            current_age: { type: :integer },
+            current_year: { type: :integer },
+            threshold_years: { type: :integer },
+            items: {
+              type: :array,
+              items: { type: :object }
+            }
+          },
+          required: ['current_age', 'current_year', 'threshold_years', 'items']
         
         let(:user) { create(:user, birthdate: 30.years.ago) }
         
@@ -86,14 +127,14 @@ RSpec.describe 'api/v1/dashboard', type: :request do
         
         before do
           bucket = create(:time_bucket, user: user, start_age: 25, end_age: 35)
-          create_list(:bucket_item, 3, time_bucket: bucket, status: 'active')
+          create_list(:bucket_item, 3, time_bucket: bucket, status: 'in_progress')
         
         end
         
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data).to be_an(Array)
-          expect(data.length).to eq(3)
+          expect(data['items']).to be_an(Array)
+          expect(data['items'].length).to eq(3)
         end
       end
 
@@ -113,8 +154,15 @@ RSpec.describe 'api/v1/dashboard', type: :request do
       parameter name: :Cookie, in: :header, type: :string, required: false, description: 'Session cookie'
 
       response(200, 'successful') do
-        schema type: :array,
-          items: { '$ref' => '#/components/schemas/BucketItem' }
+        schema type: :object,
+          properties: {
+            total_completed: { type: :integer },
+            total_cost: { type: :number },
+            category_achievements: { type: :array },
+            bucket_completions: { type: :array },
+            items: { type: :array }
+          },
+          required: ['total_completed', 'total_cost', 'category_achievements', 'bucket_completions', 'items']
         
         let(:user) { create(:user) }
         
@@ -133,14 +181,15 @@ RSpec.describe 'api/v1/dashboard', type: :request do
         
         before do
           bucket = create(:time_bucket, user: user)
-          create_list(:bucket_item, 5, time_bucket: bucket, status: 'completed', completed_at: 1.day.ago)
+          create_list(:bucket_item, 5, time_bucket: bucket, status: 'done', completed_at: 1.day.ago)
         
         end
         
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data).to be_an(Array)
-          expect(data.all? { |item| item['status'] == 'completed' }).to be true
+          expect(data['items']).to be_an(Array)
+          expect(data['items'].length).to eq(5)
+          expect(data['total_completed']).to eq(5)
         end
       end
 
