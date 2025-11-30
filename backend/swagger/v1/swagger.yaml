@@ -926,13 +926,13 @@ components:
         category:
           type: string
           enum:
+          - travel
           - career
-          - health
+          - family
           - finance
-          - relationships
+          - health
           - learning
-          - leisure
-          - contribution
+          - other
         value_statement:
           type: string
         difficulty:
