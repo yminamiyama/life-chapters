@@ -230,9 +230,9 @@ paths:
                 status:
                   type: string
                   enum:
-                  - active
-                  - completed
-                  - archived
+                  - planned
+                  - in_progress
+                  - done
     delete:
       summary: Delete bucket item
       tags:
