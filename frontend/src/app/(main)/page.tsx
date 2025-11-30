@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useBuckets, useUser } from "@/hooks/use-buckets";
 import { CATEGORY_CONFIG } from "@/constants";
-import { BrainCircuit, DollarSign, TrendingUp } from "lucide-react";
+import { DollarSign, TrendingUp } from "lucide-react";
 import { ItemStatus } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 

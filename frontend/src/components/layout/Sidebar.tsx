@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Activity, LayoutDashboard, ListTodo, Settings, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/hooks/use-buckets";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { createPortal } from "react-dom";
 
 export function Sidebar({ className }: { className?: string }) {
@@ -16,7 +16,6 @@ export function Sidebar({ className }: { className?: string }) {
   const [timezone, setTimezone] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
   const navItems = [
     { name: "ダッシュボード", icon: LayoutDashboard, path: "/" },
     { name: "マイバケット", icon: ListTodo, path: "/buckets" },
@@ -24,10 +23,6 @@ export function Sidebar({ className }: { className?: string }) {
   ];
 
   const tzList = useMemo(() => Intl.supportedValuesOf("timeZone"), []);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleOpen = () => {
     setBirthdate(user?.birthdate ?? "");
@@ -42,8 +37,8 @@ export function Sidebar({ className }: { className?: string }) {
       try {
         await updateUser({ birthdate: birthdate || undefined, timezone: timezone || undefined });
         setOpen(false);
-      } catch (e: any) {
-        setError(e?.message || "更新に失敗しました");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "更新に失敗しました");
       }
     });
   };
@@ -99,7 +94,7 @@ export function Sidebar({ className }: { className?: string }) {
         </div>
       </div>
 
-      {mounted && open
+      {typeof document !== "undefined" && open
         ? createPortal(
             <div
               className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm flex items-center justify-center px-4"

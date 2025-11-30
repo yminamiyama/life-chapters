@@ -7,6 +7,38 @@ export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "false" ? false : t
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1";
 export const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
+type ApiBucketItem = {
+  id: string;
+  time_bucket_id: string;
+  title: string;
+  category: BucketItem["category"];
+  difficulty: BucketItem["difficulty"];
+  risk_level: BucketItem["riskLevel"];
+  estimated_cost: number;
+  status: BucketItem["status"];
+  target_year: number;
+  value_statement: string;
+  completed_at?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+type ApiTimeBucket = {
+  id: string;
+  start_age: number;
+  end_age: number;
+  description?: string;
+  position?: number;
+};
+
+type ApiUser = {
+  id: string;
+  email?: string;
+  birthdate?: string;
+  current_age: number;
+  timezone?: string;
+};
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -14,7 +46,7 @@ export class ApiError extends Error {
   }
 }
 
-const fetchJson = async (url: string, options: RequestInit = {}) => {
+const fetchJson = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
   const res = await fetch(url, {
     credentials: "include", // send session cookies for auth
     ...options,
@@ -34,10 +66,10 @@ const fetchJson = async (url: string, options: RequestInit = {}) => {
 
   if (res.status === 204) return null;
 
-  return res.json();
+  return (await res.json()) as T;
 };
 
-const mapBucketItem = (apiItem: any): BucketItem => ({
+const mapBucketItem = (apiItem: ApiBucketItem): BucketItem => ({
   id: apiItem.id,
   timeBucketId: apiItem.time_bucket_id,
   title: apiItem.title,
@@ -54,7 +86,7 @@ const mapBucketItem = (apiItem: any): BucketItem => ({
   updatedAt: apiItem.updated_at,
 });
 
-const mapTimeBucket = (apiBucket: any): TimeBucket => ({
+const mapTimeBucket = (apiBucket: ApiTimeBucket): TimeBucket => ({
   id: apiBucket.id,
   label: `${apiBucket.start_age}-${apiBucket.end_age}`,
   startAge: apiBucket.start_age,
@@ -64,7 +96,7 @@ const mapTimeBucket = (apiBucket: any): TimeBucket => ({
   items: [],
 });
 
-const mapUserProfile = (apiUser: any): UserProfile => ({
+const mapUserProfile = (apiUser: ApiUser): UserProfile => ({
   id: apiUser.id,
   email: apiUser.email,
   birthdate: apiUser.birthdate,
@@ -73,7 +105,7 @@ const mapUserProfile = (apiUser: any): UserProfile => ({
 });
 
 const patchProfile = async (body: Partial<UserProfile>): Promise<UserProfile> => {
-  const data = await fetchJson(`${API_BASE_URL}/profile`, {
+  const data = await fetchJson<ApiUser>(`${API_BASE_URL}/profile`, {
     method: "PATCH",
     body: JSON.stringify(body),
   });
@@ -83,18 +115,18 @@ const patchProfile = async (body: Partial<UserProfile>): Promise<UserProfile> =>
 const RealApiClient = {
   get: async <T>(path: string): Promise<T> => {
     if (path === "/user") {
-      const data = await fetchJson(`${API_BASE_URL}/profile`);
+      const data = await fetchJson<ApiUser>(`${API_BASE_URL}/profile`);
       return mapUserProfile(data) as T;
     }
 
     if (path === "/buckets") {
-      const bucketsData = await fetchJson(`${API_BASE_URL}/time_buckets`);
+      const bucketsData = await fetchJson<ApiTimeBucket[]>(`${API_BASE_URL}/time_buckets`);
       const buckets = bucketsData.map(mapTimeBucket);
 
       const bucketsWithItems = await Promise.all(
         buckets.map(async (bucket: TimeBucket) => {
           try {
-            const itemsData = await fetchJson(
+            const itemsData = await fetchJson<ApiBucketItem[]>(
               `${API_BASE_URL}/time_buckets/${bucket.id}/bucket_items`
             );
             return { ...bucket, items: itemsData.map(mapBucketItem) };
@@ -111,17 +143,17 @@ const RealApiClient = {
     throw new ApiError(404, `Path ${path} not handled in Real Client`);
   },
 
-  patch: async <T>(path: string, body: any): Promise<T> => {
+  patch: async <T>(path: string, body: Partial<BucketItem>): Promise<T> => {
     const match = path.match(/\/buckets\/(.+)\/items\/(.+)/);
     if (match) {
       const bucketId = match[1];
       const itemId = match[2];
 
-      const apiBody: any = {};
+      const apiBody: Partial<ApiBucketItem> = {};
       if (body.status) apiBody.status = body.status;
       if (body.title) apiBody.title = body.title;
 
-      const data = await fetchJson(
+      const data = await fetchJson<ApiBucketItem>(
         `${API_BASE_URL}/time_buckets/${bucketId}/bucket_items/${itemId}`,
         {
           method: "PATCH",
@@ -136,7 +168,7 @@ const RealApiClient = {
   patchProfile,
 };
 
-let mockDb = getInitialData();
+const mockDb = getInitialData();
 const DELAY = 600;
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -148,7 +180,7 @@ const MockApiClient = {
     throw new ApiError(404, `Path ${path} not found`);
   },
 
-  patch: async <T>(path: string, body: any): Promise<T> => {
+  patch: async <T>(path: string, body: Partial<BucketItem>): Promise<T> => {
     await delay(DELAY / 2);
     const itemId = path.split("/").pop();
 
