@@ -89,7 +89,7 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
           value_statement: { type: :string, example: 'Expand cultural understanding' },
           difficulty: { type: :integer, minimum: 1, maximum: 5, example: 3 },
           risk_level: { type: :integer, minimum: 1, maximum: 5, example: 2 },
-          estimated_cost: { type: :integer, example: 50000 },
+          cost_estimate: { type: :integer, example: 50000 },
           target_year: { type: :integer, example: 2025 }
         },
         required: ['title', 'category']
@@ -263,7 +263,7 @@ RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :reque
           value_statement: { type: :string },
           difficulty: { type: :integer, minimum: 1, maximum: 5 },
           risk_level: { type: :integer, minimum: 1, maximum: 5 },
-          estimated_cost: { type: :integer },
+          cost_estimate: { type: :integer },
           target_year: { type: :integer },
           status: { type: :string, enum: ['planned', 'in_progress', 'done'] }
         }
