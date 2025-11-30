@@ -1,5 +1,5 @@
 import { getInitialData } from "@/services/mockDataService";
-import { BucketItem, TimeBucket, UserProfile } from "@/types";
+import { BucketItem, TimeBucket, UserProfile, Difficulty, RiskLevel, ItemStatus } from "@/types";
 
 export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "false" ? false : true;
 
@@ -251,10 +251,10 @@ const MockApiClient = {
       timeBucketId: bucketId,
       title: body.title || "",
       category: body.category || (mockDb.buckets[0]?.items[0]?.category as BucketItem["category"]) || "other",
-      difficulty: body.difficulty || "medium",
-      riskLevel: body.riskLevel || "low",
+      difficulty: (body.difficulty as Difficulty) || Difficulty.MEDIUM,
+      riskLevel: (body.riskLevel as RiskLevel) || RiskLevel.LOW,
       costEstimate: body.costEstimate ?? 0,
-      status: body.status || "planned",
+      status: (body.status as ItemStatus) || ItemStatus.PLANNED,
       targetYear: body.targetYear ?? new Date().getFullYear(),
       valueStatement: body.valueStatement || "",
       description: body.valueStatement || "",
