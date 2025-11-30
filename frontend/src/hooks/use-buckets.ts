@@ -69,11 +69,30 @@ export function useBuckets() {
     }
   };
 
+  const deleteItem = async (bucketId: string, itemId: string) => {
+    if (!data) return;
+
+    const originalBuckets = [...data];
+    const newBuckets = data.map((b) =>
+      b.id === bucketId ? { ...b, items: b.items.filter((i) => i.id !== itemId) } : b
+    );
+
+    mutate(newBuckets, false);
+    try {
+      await apiClient.delete(`/bucket_items/${itemId}`);
+      mutate();
+    } catch (e) {
+      console.error("Delete failed", e);
+      mutate(originalBuckets, false);
+    }
+  };
+
   return {
     buckets: data || [],
     isLoading,
     isError: error,
     createItem,
     updateItem,
+    deleteItem,
   };
 }
