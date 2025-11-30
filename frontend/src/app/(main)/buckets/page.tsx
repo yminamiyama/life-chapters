@@ -2,17 +2,20 @@
 
 import React, { useState } from "react";
 import { Plus, Calendar, DollarSign, Tag, CheckCircle2 } from "lucide-react";
-import { useBuckets } from "@/hooks/use-buckets";
+import { useBuckets, useUser } from "@/hooks/use-buckets";
 import BucketCard from "@/components/BucketCard";
 import { ItemStatus, BucketItem } from "@/types";
 import { CATEGORY_CONFIG, RISK_CONFIG, STATUS_CONFIG } from "@/constants";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { CreateItemDialog } from "@/components/buckets/CreateItemDialog";
 
 export default function BucketListPage() {
-  const { buckets, updateItem, isLoading, isError } = useBuckets();
+  const { buckets, updateItem, createItem, isLoading, isError } = useBuckets();
+  const { user } = useUser();
   const [selectedBucketId, setSelectedBucketId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const effectiveBucketId = selectedBucketId ?? buckets[0]?.id ?? null;
   const selectedBucket = buckets.find((b) => b.id === effectiveBucketId);
@@ -26,6 +29,21 @@ export default function BucketListPage() {
         : ItemStatus.PLANNED;
 
     updateItem(item.timeBucketId, item.id, { status: nextStatus });
+  };
+
+  const handleCreateItem = async (payload: Partial<BucketItem>) => {
+    if (!selectedBucket) throw new Error("バケットが選択されていません。");
+
+    const birthYear = user?.birthdate ? new Date(user.birthdate).getFullYear() : undefined;
+    if (birthYear && payload.targetYear) {
+      const minYear = birthYear + selectedBucket.startAge;
+      const maxYear = birthYear + selectedBucket.endAge;
+      if (payload.targetYear < minYear || payload.targetYear > maxYear) {
+        throw new Error(`目標年は ${minYear} 〜 ${maxYear} の範囲で入力してください。`);
+      }
+    }
+
+    await createItem(selectedBucket.id, payload);
   };
 
   if (isLoading) {
@@ -72,7 +90,10 @@ export default function BucketListPage() {
                   <h2 className="text-3xl font-bold text-slate-900">{selectedBucket.label}</h2>
                   <p className="text-muted-foreground mt-1">{selectedBucket.description}</p>
                 </div>
-                <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium">
+                <button
+                  className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium"
+                  onClick={() => setDialogOpen(true)}
+                >
                   <Plus size={18} />
                   体験を追加
                 </button>
@@ -84,7 +105,12 @@ export default function BucketListPage() {
                 <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
                   <Calendar size={48} className="mb-4 opacity-20" />
                   <p>この人生のステージにはまだ計画がありません。</p>
-                  <button className="text-primary font-medium mt-2 hover:underline">最初のアイテムを追加する</button>
+                  <button
+                    className="text-primary font-medium mt-2 hover:underline"
+                    onClick={() => setDialogOpen(true)}
+                  >
+                    最初のアイテムを追加する
+                  </button>
                 </div>
               ) : (
                 selectedBucket.items.map((item) => {
@@ -156,6 +182,17 @@ export default function BucketListPage() {
           <div className="flex items-center justify-center h-full text-muted-foreground">Loading...</div>
         )}
       </Card>
+
+      <CreateItemDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        defaultTargetYear={
+          selectedBucket && user?.birthdate
+            ? new Date(user.birthdate).getFullYear() + selectedBucket.startAge
+            : new Date().getFullYear()
+        }
+        onSubmit={handleCreateItem}
+      />
     </div>
   );
 }

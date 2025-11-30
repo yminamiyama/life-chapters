@@ -1,6 +1,6 @@
 import useSWR from "swr";
 import { apiClient, ApiError } from "@/lib/api-client";
-import { BucketItem, TimeBucket, UserProfile } from "@/types";
+import { BucketItem, ItemStatus, TimeBucket, UserProfile } from "@/types";
 
 const fetchUser = () => apiClient.get<UserProfile>("/user");
 const fetchBuckets = () => apiClient.get<TimeBucket[]>("/buckets");
@@ -35,6 +35,15 @@ export function useBuckets() {
     shouldRetryOnError: (err) => (err as ApiError | undefined)?.status !== 401,
   });
 
+  const createItem = async (bucketId: string, item: Partial<BucketItem>) => {
+    const body = {
+      ...item,
+      status: item.status ?? ItemStatus.PLANNED,
+    };
+    await apiClient.post(`/time_buckets/${bucketId}/bucket_items`, body);
+    mutate();
+  };
+
   const updateItem = async (bucketId: string, itemId: string, updates: Partial<BucketItem>) => {
     if (!data) return;
 
@@ -52,7 +61,7 @@ export function useBuckets() {
     mutate(newBuckets, false);
 
     try {
-      await apiClient.patch(`/buckets/${bucketId}/items/${itemId}`, updates);
+      await apiClient.patch(`/bucket_items/${itemId}`, updates);
       mutate();
     } catch (e) {
       console.error("Update failed", e);
@@ -64,6 +73,7 @@ export function useBuckets() {
     buckets: data || [],
     isLoading,
     isError: error,
+    createItem,
     updateItem,
   };
 }

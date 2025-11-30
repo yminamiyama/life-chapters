@@ -11,7 +11,7 @@ type ApiBucketItem = {
   id: string;
   time_bucket_id: string;
   title: string;
-  category: BucketItem["category"];
+  category: string;
   difficulty: BucketItem["difficulty"];
   risk_level: BucketItem["riskLevel"];
   estimated_cost: number;
@@ -57,11 +57,24 @@ const fetchJson = async <T>(url: string, options: RequestInit = {}): Promise<T |
   });
 
   if (!res.ok) {
-    // 明示的に401を区別
-    if (res.status === 401) {
-      throw new ApiError(401, "Unauthorized");
+    let detail = res.statusText;
+    try {
+      const errBody = (await res.json()) as { errors?: string[] | Record<string, unknown>; error?: string };
+      if (Array.isArray(errBody?.errors)) {
+        detail = errBody.errors.join(", ");
+      } else if (errBody?.errors && typeof errBody.errors === "object") {
+        detail = JSON.stringify(errBody.errors);
+      }
+      if (errBody?.error && typeof errBody.error === "string") {
+        detail = errBody.error;
+      }
+    } catch {
+      // ignore parse errors
     }
-    throw new ApiError(res.status, `API request failed: ${res.statusText}`);
+    if (res.status === 401) {
+      throw new ApiError(401, detail || "Unauthorized");
+    }
+    throw new ApiError(res.status, `API request failed: ${detail}`);
   }
 
   if (res.status === 204) return null;
@@ -73,7 +86,7 @@ const mapBucketItem = (apiItem: ApiBucketItem): BucketItem => ({
   id: apiItem.id,
   timeBucketId: apiItem.time_bucket_id,
   title: apiItem.title,
-  category: apiItem.category,
+  category: mapCategoryFromApi(apiItem.category),
   difficulty: apiItem.difficulty,
   riskLevel: apiItem.risk_level,
   costEstimate: apiItem.estimated_cost,
@@ -103,6 +116,19 @@ const mapUserProfile = (apiUser: ApiUser): UserProfile => ({
   currentAge: apiUser.current_age,
   timezone: apiUser.timezone,
 });
+
+const mapCategoryFromApi = (apiCat: string): BucketItem["category"] => {
+  if (apiCat === "travel") return "leisure" as BucketItem["category"];
+  if (apiCat === "family") return "relationships" as BucketItem["category"];
+  return apiCat as BucketItem["category"];
+};
+
+const mapCategoryToApi = (cat?: BucketItem["category"]) => {
+  if (!cat) return undefined;
+  if (cat === "leisure") return "travel";
+  if (cat === "relationships") return "family";
+  return cat;
+};
 
 const patchProfile = async (body: Partial<UserProfile>): Promise<UserProfile> => {
   const data = await fetchJson<ApiUser>(`${API_BASE_URL}/profile`, {
@@ -146,28 +172,61 @@ const RealApiClient = {
     throw new ApiError(404, `Path ${path} not handled in Real Client`);
   },
 
-  patch: async <T>(path: string, body: Partial<BucketItem>): Promise<T> => {
-    const match = path.match(/\/buckets\/(.+)\/items\/(.+)/);
+  post: async <T>(path: string, body: Partial<BucketItem>): Promise<T> => {
+    const match = path.match(/\/time_buckets\/(.+)\/bucket_items/);
     if (match) {
       const bucketId = match[1];
-      const itemId = match[2];
+      const apiBody = {
+        title: body.title,
+        category: mapCategoryToApi(body.category),
+        difficulty: body.difficulty,
+        risk_level: body.riskLevel,
+        estimated_cost: body.costEstimate,
+        status: body.status,
+        target_year: body.targetYear,
+        value_statement: body.valueStatement,
+      };
+
+      const data = await fetchJson<ApiBucketItem>(
+        `${API_BASE_URL}/time_buckets/${bucketId}/bucket_items`,
+        {
+          method: "POST",
+          body: JSON.stringify({ bucket_item: apiBody }),
+        }
+      );
+      if (!data) throw new ApiError(500, "Empty item response");
+      return mapBucketItem(data) as T;
+    }
+    throw new ApiError(400, "Invalid post path. Expected /time_buckets/:bucketId/bucket_items");
+  },
+
+  patch: async <T>(path: string, body: Partial<BucketItem>): Promise<T> => {
+    const match = path.match(/\/bucket_items\/(.+)/);
+    if (match) {
+      const itemId = match[1];
 
       const apiBody: Partial<ApiBucketItem> = {};
       if (body.status) apiBody.status = body.status;
       if (body.title) apiBody.title = body.title;
+      if (body.category) apiBody.category = mapCategoryToApi(body.category);
+      if (body.difficulty) apiBody.difficulty = body.difficulty;
+      if (body.riskLevel) apiBody.risk_level = body.riskLevel;
+      if (body.costEstimate !== undefined) apiBody.estimated_cost = body.costEstimate;
+      if (body.targetYear) apiBody.target_year = body.targetYear;
+      if (body.valueStatement) apiBody.value_statement = body.valueStatement;
 
       const data = await fetchJson<ApiBucketItem>(
-        `${API_BASE_URL}/time_buckets/${bucketId}/bucket_items/${itemId}`,
+        `${API_BASE_URL}/bucket_items/${itemId}`,
         {
           method: "PATCH",
-          body: JSON.stringify(apiBody),
+          body: JSON.stringify({ bucket_item: apiBody }),
         }
       );
       if (!data) throw new ApiError(500, "Empty item response");
       return mapBucketItem(data) as T;
     }
 
-    throw new ApiError(400, "Invalid patch path. Expected /buckets/:bucketId/items/:itemId");
+    throw new ApiError(400, "Invalid patch path. Expected /bucket_items/:itemId");
   },
   patchProfile,
 };
@@ -182,6 +241,30 @@ const MockApiClient = {
     if (path === "/user") return mockDb.user as T;
     if (path === "/buckets") return mockDb.buckets as T;
     throw new ApiError(404, `Path ${path} not found`);
+  },
+
+  post: async <T>(path: string, body: Partial<BucketItem>): Promise<T> => {
+    await delay(DELAY / 2);
+    const bucketId = path.split("/")[2];
+    const newItem: BucketItem = {
+      id: `item-${Date.now()}`,
+      timeBucketId: bucketId,
+      title: body.title || "",
+      category: body.category || (mockDb.buckets[0]?.items[0]?.category as BucketItem["category"]) || "other",
+      difficulty: body.difficulty || "medium",
+      riskLevel: body.riskLevel || "low",
+      costEstimate: body.costEstimate ?? 0,
+      status: body.status || "planned",
+      targetYear: body.targetYear ?? new Date().getFullYear(),
+      valueStatement: body.valueStatement || "",
+      description: body.valueStatement || "",
+      tags: [],
+    };
+
+    mockDb.buckets = mockDb.buckets.map((b) =>
+      b.id === bucketId ? { ...b, items: [...b.items, newItem] } : b
+    );
+    return newItem as T;
   },
 
   patch: async <T>(path: string, body: Partial<BucketItem>): Promise<T> => {
