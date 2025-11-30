@@ -43,6 +43,8 @@ module App
     
     # Enable cookies and session for OAuth authentication
     config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore
+    config.middleware.use ActionDispatch::Session::CookieStore, 
+                          key: '_time_bucket_session', 
+                          secret: Rails.application.secret_key_base
   end
 end
