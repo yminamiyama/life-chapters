@@ -134,7 +134,7 @@ RSpec.describe "Api::V1::NotificationSettings", type: :request do
         json = JSON.parse(response.body)
         
         expect(json["events"]["bucket_item_due"]).to be_truthy
-        expect(json["events"]["weekly_digest"]).to be_present
+        expect(json["events"]["weekly_digest"]).to eq("false")
         expect(json["events"]["completion_reminder"]).to be_truthy
       end
     end
