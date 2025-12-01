@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ItemStatus, BucketItem } from "@/types";
+import { ItemStatus } from "@/types";
 import { CheckCircle2, Clock3, Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 

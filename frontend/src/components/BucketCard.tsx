@@ -8,29 +8,52 @@ import { AlertCircle, CheckCircle2, Circle, Clock3 } from "lucide-react";
 interface BucketCardProps {
   bucket: TimeBucket;
   isActive: boolean;
+  temporalState: "past" | "current" | "future";
   onSelect: () => void;
 }
 
-const BucketCard: React.FC<BucketCardProps> = ({ bucket, isActive, onSelect }) => {
+const BucketCard: React.FC<BucketCardProps> = ({ bucket, isActive, temporalState, onSelect }) => {
   const itemCount = bucket.items.length;
   const completedCount = bucket.items.filter((i) => i.status === ItemStatus.DONE).length;
   const progress = itemCount > 0 ? (completedCount / itemCount) * 100 : 0;
   const categories = Array.from(new Set(bucket.items.map((i) => i.category))).slice(0, 4);
+
+  const isCurrent = temporalState === "current";
+  const isPast = temporalState === "past";
+
+  const cardTone = (() => {
+    if (isActive) return "border-brand-500 ring-1 ring-brand-500 bg-white shadow-md";
+    if (isCurrent) return "border-brand-400 bg-white shadow-sm";
+    if (isPast) return "border-slate-200 bg-slate-50";
+    return "border-slate-200 bg-white";
+  })();
+
+  const headerTone = (() => {
+    if (isCurrent) return "bg-brand-50/70";
+    if (isPast) return "bg-slate-100";
+    return "bg-slate-50/50";
+  })();
 
   return (
     <div
       onClick={onSelect}
       className={`
         relative overflow-hidden rounded-xl border transition-all duration-200 cursor-pointer group
-        ${
-          isActive
-            ? "border-brand-500 ring-1 ring-brand-500 bg-white shadow-md"
-            : "border-slate-200 bg-white hover:border-brand-300 hover:shadow-sm"
-        }
+        ${cardTone} hover:border-brand-300 hover:shadow-sm
       `}
     >
+      {isCurrent && (
+        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-brand-500/90 px-3 py-1 text-[11px] font-semibold text-white shadow-sm">
+          現在
+        </span>
+      )}
+      {isPast && (
+        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-200 px-3 py-1 text-[11px] font-semibold text-slate-600">
+          過去
+        </span>
+      )}
       <div
-        className={`p-4 ${isActive ? "bg-brand-50/50" : "bg-slate-50/50"} border-b border-slate-100 flex justify-between items-center`}
+        className={`p-4 ${headerTone} border-b border-slate-100 flex justify-between items-center`}
       >
         <div>
           <h3 className="text-lg font-bold text-slate-800">{bucket.label}</h3>
@@ -46,10 +69,15 @@ const BucketCard: React.FC<BucketCardProps> = ({ bucket, isActive, onSelect }) =
       </div>
 
       <div className="h-1 w-full bg-slate-100">
-        <div className="h-full bg-brand-500 transition-all duration-500" style={{ width: `${progress}%` }} />
+        <div
+          className={`h-full transition-all duration-500 ${
+            isPast ? "bg-slate-400" : "bg-brand-500"
+          }`}
+          style={{ width: `${progress}%` }}
+        />
       </div>
 
-      <div className="p-4 min-h-[120px]">
+      <div className={`p-4 min-h-[120px] ${isPast ? "bg-slate-50" : ""}`}>
         {itemCount === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2">
             <AlertCircle size={20} className="opacity-20" />
