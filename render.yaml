@@ -5,6 +5,7 @@ services:
     runtime: ruby
     region: singapore
     plan: free
+    rootDir: backend
     buildCommand: "./bin/render-build.sh"
     startCommand: "bundle exec puma -C config/puma.rb"
     envVars:
