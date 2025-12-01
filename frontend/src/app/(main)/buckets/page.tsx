@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Plus, Calendar, DollarSign, Tag, Pencil, Trash2 } from "lucide-react";
 import { useBuckets, useUser } from "@/hooks/use-buckets";
 import BucketCard from "@/components/BucketCard";
@@ -15,14 +15,54 @@ import { StatusSelector } from "@/components/buckets/StatusSelector";
 export default function BucketListPage() {
   const { buckets, updateItem, createItem, deleteItem, isLoading, isError } = useBuckets();
   const { user } = useUser();
-  const [selectedBucketId, setSelectedBucketId] = useState<string | null>(null);
+  const [manualSelectedBucketId, setManualSelectedBucketId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<BucketItem | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const formatYen = (amount: number) => `¥${amount.toLocaleString()}`;
 
-  const effectiveBucketId = selectedBucketId ?? buckets[0]?.id ?? null;
+  // デフォルト選択: 現在の年齢を含むバケット → 未来で最も近い → 最後
+  const defaultBucketId = React.useMemo(() => {
+    if (!user || buckets.length === 0) return null;
+    const age = user.currentAge;
+    const current = buckets.find((b) => age >= b.startAge && age <= b.endAge);
+    if (current) return current.id;
+    const future = buckets
+      .filter((b) => b.startAge > age)
+      .sort((a, b) => a.startAge - b.startAge)[0];
+    if (future) return future.id;
+    return buckets[buckets.length - 1]?.id ?? null;
+  }, [user, buckets]);
+
+  const effectiveBucketId = manualSelectedBucketId ?? defaultBucketId ?? buckets[0]?.id ?? null;
   const selectedBucket = buckets.find((b) => b.id === effectiveBucketId);
+
+  const temporalState = (bucketId: string) => {
+    if (!user) return "future";
+    const bucket = buckets.find((b) => b.id === bucketId);
+    if (!bucket) return "future";
+    if (user.currentAge < bucket.startAge) return "future";
+    if (user.currentAge > bucket.endAge) return "past";
+    return "current";
+  };
+
+  // 選択カードがスクロール外なら自動スクロール
+  useEffect(() => {
+    if (!effectiveBucketId || !listRef.current) return;
+    const el = cardRefs.current[effectiveBucketId];
+    const container = listRef.current;
+    if (!el || !container) return;
+
+    const elRect = el.getBoundingClientRect();
+    const contRect = container.getBoundingClientRect();
+    const isAbove = elRect.top < contRect.top;
+    const isBelow = elRect.bottom > contRect.bottom;
+    if (isAbove || isBelow) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [effectiveBucketId, buckets]);
 
   const handleCreateItem = async (payload: Partial<BucketItem>) => {
     if (!selectedBucket) throw new Error("バケットが選択されていません。");
@@ -68,16 +108,26 @@ export default function BucketListPage() {
 
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)] gap-6">
-      <div className="lg:w-1/3 flex flex-col gap-4 overflow-y-auto no-scrollbar pb-10">
+      <div
+        ref={listRef}
+        className="lg:w-1/3 flex flex-col gap-4 overflow-y-auto no-scrollbar pb-10"
+      >
         <h2 className="text-2xl font-bold tracking-tight sticky top-0 bg-slate-50 py-2 z-10">マイ・タイムバケット</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
           {buckets.map((bucket) => (
-            <BucketCard
+            <div
               key={bucket.id}
-              bucket={bucket}
-              isActive={selectedBucketId === bucket.id}
-              onSelect={() => setSelectedBucketId(bucket.id)}
-            />
+              ref={(el) => {
+                cardRefs.current[bucket.id] = el;
+              }}
+            >
+              <BucketCard
+                bucket={bucket}
+                temporalState={temporalState(bucket.id) as "past" | "current" | "future"}
+                isActive={effectiveBucketId === bucket.id}
+                onSelect={() => setManualSelectedBucketId(bucket.id)}
+              />
+            </div>
           ))}
         </div>
       </div>
