@@ -8,8 +8,8 @@ Rails.application.routes.draw do
   delete '/logout', to: 'sessions#destroy'
   
   # API routes
-  namespace :api do
-    namespace :v1 do
+  scope module: :api do
+    namespace :v1, path: '/v1' do
       # Dashboard
       get 'dashboard/summary', to: 'dashboard#summary'
       get 'dashboard/actions-now', to: 'dashboard#actions_now'
