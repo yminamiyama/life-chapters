@@ -6,8 +6,8 @@ export const USE_MOCK =
   process.env.NEXT_PUBLIC_USE_MOCK === "true" ||
   (!process.env.NEXT_PUBLIC_USE_MOCK && process.env.NODE_ENV !== "production");
 
-// API_BASE_URL is the API prefix (default /api/v1). BACKEND_BASE_URL is the origin for auth redirects.
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/api/v1";
+// API_BASE_URL is the API prefix (default /v1). BACKEND_BASE_URL is the origin for auth redirects.
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "/v1";
 export const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
 type ApiBucketItem = {

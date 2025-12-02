@@ -5,7 +5,7 @@ import { ShieldCheck, LogIn } from "lucide-react";
 
 export default function LoginPage() {
   // 認証エンドポイントは /auth/google_oauth2 (API prefixなし)
-  const action = `${(BACKEND_BASE_URL || API_BASE_URL.replace(/\/api\/v1$/, ""))}/auth/google_oauth2`;
+  const action = `${(BACKEND_BASE_URL || API_BASE_URL.replace(/\/v1$/, ""))}/auth/google_oauth2`;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
