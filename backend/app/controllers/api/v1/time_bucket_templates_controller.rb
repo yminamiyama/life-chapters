@@ -3,7 +3,7 @@ module Api
     class TimeBucketTemplatesController < ApplicationController
       before_action :authenticate_user!
 
-      # POST /api/v1/time_buckets/templates
+      # POST /v1/time_buckets/templates
       def create
         generator = TimeBucketTemplateGenerator.new(
           user: current_user,

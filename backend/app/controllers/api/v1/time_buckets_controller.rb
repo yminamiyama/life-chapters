@@ -4,18 +4,18 @@ module Api
       before_action :authenticate_user!
       before_action :set_time_bucket, only: [:show, :update, :destroy]
 
-      # GET /api/v1/time_buckets
+      # GET /v1/time_buckets
       def index
         @time_buckets = current_user.time_buckets.ordered
         render json: @time_buckets
       end
 
-      # GET /api/v1/time_buckets/:id
+      # GET /v1/time_buckets/:id
       def show
         render json: @time_bucket
       end
 
-      # POST /api/v1/time_buckets
+      # POST /v1/time_buckets
       def create
         @time_bucket = current_user.time_buckets.build(time_bucket_params)
 
@@ -26,7 +26,7 @@ module Api
         end
       end
 
-      # PATCH/PUT /api/v1/time_buckets/:id
+      # PATCH/PUT /v1/time_buckets/:id
       def update
         if @time_bucket.update(time_bucket_params)
           render json: @time_bucket
@@ -35,7 +35,7 @@ module Api
         end
       end
 
-      # DELETE /api/v1/time_buckets/:id
+      # DELETE /v1/time_buckets/:id
       def destroy
         @time_bucket.destroy
         head :no_content

@@ -1,6 +1,6 @@
 require 'swagger_helper'
 
-RSpec.describe 'api/v1/dashboard', type: :request do
+RSpec.describe '/v1/dashboard', type: :request do
   path '/v1/dashboard/summary' do
     get('Get dashboard summary') do
       tags 'Dashboard'

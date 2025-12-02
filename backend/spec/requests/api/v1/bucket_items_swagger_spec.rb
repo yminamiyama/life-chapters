@@ -1,6 +1,6 @@
 require 'swagger_helper'
 
-RSpec.describe 'api/v1/time_buckets/{time_bucket_id}/bucket_items', type: :request do
+RSpec.describe '/v1/time_buckets/{time_bucket_id}/bucket_items', type: :request do
   path '/v1/time_buckets/{time_bucket_id}/bucket_items' do
     parameter name: :time_bucket_id, in: :path, type: :integer, description: 'Time bucket ID'
 

@@ -1,6 +1,6 @@
 require 'swagger_helper'
 
-RSpec.describe 'api/v1/time_buckets/templates', type: :request do
+RSpec.describe '/v1/time_buckets/templates', type: :request do
   path '/v1/time_buckets/templates' do
     post('Generate time bucket templates') do
       tags 'Time Buckets'

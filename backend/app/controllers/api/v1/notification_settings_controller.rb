@@ -3,14 +3,14 @@ module Api
     class NotificationSettingsController < ApplicationController
       before_action :authenticate_user!
 
-      # GET /api/v1/notification-settings
+      # GET /v1/notification-settings
       def show
         settings = current_user.notification_preference || current_user.build_notification_preference
         
         render json: notification_response(settings)
       end
 
-      # PATCH /api/v1/notification-settings
+      # PATCH /v1/notification-settings
       def update
         settings = current_user.notification_preference || current_user.build_notification_preference
         

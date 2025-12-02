@@ -5,18 +5,18 @@ module Api
       before_action :set_time_bucket, only: [:index, :create]
       before_action :set_bucket_item, only: [:show, :update, :destroy, :complete]
 
-      # GET /api/v1/time_buckets/:time_bucket_id/bucket_items
+      # GET /v1/time_buckets/:time_bucket_id/bucket_items
       def index
         @bucket_items = @time_bucket.bucket_items
         render json: @bucket_items
       end
 
-      # GET /api/v1/bucket_items/:id
+      # GET /v1/bucket_items/:id
       def show
         render json: @bucket_item
       end
 
-      # POST /api/v1/time_buckets/:time_bucket_id/bucket_items
+      # POST /v1/time_buckets/:time_bucket_id/bucket_items
       def create
         @bucket_item = @time_bucket.bucket_items.build(bucket_item_params)
 
@@ -27,7 +27,7 @@ module Api
         end
       end
 
-      # PATCH/PUT /api/v1/bucket_items/:id
+      # PATCH/PUT /v1/bucket_items/:id
       def update
         if @bucket_item.update(bucket_item_params)
           render json: @bucket_item
@@ -36,7 +36,7 @@ module Api
         end
       end
 
-      # PATCH /api/v1/bucket_items/:id/complete
+      # PATCH /v1/bucket_items/:id/complete
       def complete
         if @bucket_item.update(status: 'done', completed_at: Time.current)
           render json: @bucket_item
@@ -45,7 +45,7 @@ module Api
         end
       end
 
-      # DELETE /api/v1/bucket_items/:id
+      # DELETE /v1/bucket_items/:id
       def destroy
         @bucket_item.destroy
         head :no_content
