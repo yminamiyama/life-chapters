@@ -16,7 +16,7 @@ services:
       - key: RAILS_MASTER_KEY
         sync: false
       - key: FRONTEND_URL
-        value: https://time-bucket.vercel.app
+        value: https://time-bucket.yminamiyama.com
       - key: RAILS_ENV
         value: production
       - key: RAILS_LOG_TO_STDOUT

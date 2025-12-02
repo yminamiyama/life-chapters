@@ -10,7 +10,7 @@ unless Rails.env.test?
     allow do
       allowed_origins = ENV.fetch(
         "FRONTEND_URL"
-      ) { "http://localhost:3000,https://time-bucket.vercel.app" }
+      ) { "http://localhost:3000,https://time-bucket.vercel.app,https://time-bucket.yminamiyama.com" }
         .split(",")
         .map(&:strip)
 
