@@ -49,7 +49,7 @@ RAILS_ENV=development bundle exec rails db:setup
 cd backend
 bin/dev # or ./bin/rails server -p 4000
 ```
-主要エンドポイント: `http://localhost:4000/api/v1`
+主要エンドポイント: `http://localhost:4000/v1`
 
 ## 5. フロントエンド起動
 ```bash

@@ -1,6 +1,6 @@
 require 'swagger_helper'
 
-RSpec.describe 'api/v1/sessions', type: :request do
+RSpec.describe '/v1/sessions', type: :request do
   path '/auth/google_oauth2/callback' do
     post('Google OAuth callback (production)') do
       tags 'Authentication'

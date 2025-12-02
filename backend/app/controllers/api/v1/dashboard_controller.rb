@@ -3,7 +3,7 @@ module Api
     class DashboardController < ApplicationController
       before_action :authenticate_user!
 
-      # GET /api/v1/dashboard/summary
+      # GET /v1/dashboard/summary
       def summary
         # Fetch all bucket items for stats calculation in a single query
         bucket_items = BucketItem.joins(:time_bucket).where(time_buckets: { user_id: current_user.id })
@@ -17,7 +17,7 @@ module Api
         }
       end
 
-      # GET /api/v1/dashboard/actions-now
+      # GET /v1/dashboard/actions-now
       def actions_now
         unless current_user.birthdate
           render json: { error: "Birthdate is required to calculate actions now" }, status: :bad_request
@@ -67,7 +67,7 @@ module Api
         }
       end
 
-      # GET /api/v1/dashboard/review-completed
+      # GET /v1/dashboard/review-completed
       def review_completed
         completed_items = BucketItem.joins(:time_bucket)
                                     .where(time_buckets: { user_id: current_user.id })

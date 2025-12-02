@@ -3,12 +3,12 @@ module Api
     class ProfileController < ApplicationController
       before_action :authenticate_user!
 
-      # GET /api/v1/profile
+      # GET /v1/profile
       def show
         render json: profile_response
       end
 
-      # PATCH /api/v1/profile
+      # PATCH /v1/profile
       def update
         if current_user.update(profile_params)
           render json: profile_response

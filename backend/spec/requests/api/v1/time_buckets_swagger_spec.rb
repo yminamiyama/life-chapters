@@ -1,6 +1,6 @@
 require 'swagger_helper'
 
-RSpec.describe 'api/v1/time_buckets', type: :request do
+RSpec.describe '/v1/time_buckets', type: :request do
   path '/v1/time_buckets' do
     get('List time buckets') do
       tags 'Time Buckets'
