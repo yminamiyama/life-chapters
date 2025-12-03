@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 
 const DemoBanner = () => {
   const [visible, setVisible] = useState(() => isMockEnabled());
+  const [bottomOffset, setBottomOffset] = useState(24); // px
   const pathname = usePathname();
 
   useEffect(() => {
@@ -20,10 +21,18 @@ const DemoBanner = () => {
 
     window.addEventListener("storage", onStorage);
     window.addEventListener("timebucket-demo-toggle", refresh as EventListener);
+    const resize = () => {
+      if (typeof window !== "undefined") {
+        setBottomOffset(window.innerWidth < 768 ? 120 : 24);
+      }
+    };
+    resize();
+    window.addEventListener("resize", resize);
 
     return () => {
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("timebucket-demo-toggle", refresh as EventListener);
+      window.removeEventListener("resize", resize);
     };
   }, [pathname]);
 
@@ -40,8 +49,13 @@ const DemoBanner = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-[60]">
-      <div className="mx-auto max-w-xl rounded-2xl border border-primary/20 bg-white/95 shadow-lg backdrop-blur px-4 py-3 flex items-center justify-between gap-3">
+    <div
+      className="fixed z-[60] left-4 right-4 pointer-events-none"
+      style={{
+        bottom: `calc(env(safe-area-inset-bottom, 0px) + ${bottomOffset}px)`,
+      }}
+    >
+      <div className="mx-auto max-w-sm rounded-2xl border border-primary/20 bg-white/95 shadow-lg backdrop-blur px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pointer-events-auto md:mb-2">
         <div className="flex items-center gap-2 text-sm text-slate-700">
           <Info size={18} className="text-primary" />
           <div className="leading-tight">
