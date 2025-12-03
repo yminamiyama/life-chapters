@@ -81,7 +81,7 @@ const BucketCard: React.FC<BucketCardProps> = ({ bucket, isActive, temporalState
         {itemCount === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2">
             <AlertCircle size={20} className="opacity-20" />
-            <span className="text-xs">バケットは空です</span>
+            <span className="text-xs">チャプターは空です</span>
           </div>
         ) : (
           <div className="space-y-3">

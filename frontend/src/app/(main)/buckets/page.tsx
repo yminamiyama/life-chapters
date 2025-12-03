@@ -23,7 +23,7 @@ export default function BucketListPage() {
 
   const formatYen = (amount: number) => `¥${amount.toLocaleString()}`;
 
-  // デフォルト選択: 現在の年齢を含むバケット → 未来で最も近い → 最後
+  // デフォルト選択: 現在の年齢を含むチャプター → 未来で最も近い → 最後
   const defaultBucketId = React.useMemo(() => {
     if (!user || buckets.length === 0) return null;
     const age = user.currentAge;
@@ -67,7 +67,7 @@ export default function BucketListPage() {
   }, [effectiveBucketId, buckets]);
 
   const handleCreateItem = async (payload: Partial<BucketItem>) => {
-    if (!selectedBucket) throw new Error("バケットが選択されていません。");
+    if (!selectedBucket) throw new Error("チャプターが選択されていません。");
 
     const birthYear = user?.birthdate ? new Date(user.birthdate).getFullYear() : undefined;
     if (birthYear && payload.targetYear) {
@@ -103,7 +103,7 @@ export default function BucketListPage() {
   if (buckets.length === 0) {
     return (
       <div className="p-6 text-muted-foreground">
-        バケットがありません。最初のバケットを作成してください。
+        チャプターがありません。最初のチャプターを作成してください。
       </div>
     );
   }
@@ -112,7 +112,7 @@ export default function BucketListPage() {
     <div className="flex flex-col lg:flex-row gap-6 min-h-screen lg:h-[calc(100vh-100px)]">
       <div className="lg:w-1/3 flex flex-col gap-3">
         <h2 className="text-2xl font-bold tracking-tight sticky top-0 bg-slate-50 py-2 z-10">
-          マイ・タイムバケット
+          マイ・チャプター
         </h2>
         <div
           ref={listRef}

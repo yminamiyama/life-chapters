@@ -17,7 +17,7 @@ export default function LoginPage() {
             <ShieldCheck size={28} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">TimeBucket へログイン</h1>
+            <h1 className="text-2xl font-bold text-slate-900">LifeChapters へログイン</h1>
             <p className="text-sm text-muted-foreground">Googleで認証してダッシュボードに進みます。</p>
           </div>
         </div>
