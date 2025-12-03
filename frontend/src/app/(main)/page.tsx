@@ -37,7 +37,7 @@ export default function DashboardPage() {
       (b) => user.currentAge >= b.startAge && user.currentAge <= b.endAge
     );
     if (match) return match.label;
-    // fallback: 直近の将来バケット or 最後のバケット
+    // fallback: 直近の将来チャプター or 最後のチャプター
     const future = buckets.find((b) => b.startAge > user.currentAge);
     return future?.label || buckets[buckets.length - 1]?.label || "-";
   }, [buckets, user]);
@@ -58,7 +58,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">ライフダッシュボード</h2>
-          <p className="text-muted-foreground">タイムバケットの状況と人生設計の統計概要です。</p>
+          <p className="text-muted-foreground">チャプターの状況と人生設計の統計概要です。</p>
         </div>
       </div>
 
@@ -70,7 +70,7 @@ export default function DashboardPage() {
                 <TrendingUp size={24} />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground font-medium">バケット密度</p>
+                <p className="text-sm text-muted-foreground font-medium">チャプター密度</p>
                 <p className="text-2xl font-bold">
                   {totalItems} <span className="text-sm font-normal text-muted-foreground">体験</span>
                 </p>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
                 <p className="text-2xl font-bold">{formatYen(totalCost)}</p>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-4">全バケットアイテムの総見積もりコスト。</p>
+            <p className="text-xs text-muted-foreground mt-4">全アイテムの総見積もりコスト。</p>
           </CardContent>
         </Card>
 
@@ -107,7 +107,7 @@ export default function DashboardPage() {
               <span className="text-sm text-muted-foreground">歳</span>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              現在のバケット: <span className="font-semibold text-brand-600">{currentBucketLabel}</span>
+              現在のチャプター: <span className="font-semibold text-brand-600">{currentBucketLabel}</span>
             </p>
           </CardContent>
         </Card>
@@ -116,7 +116,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="h-[400px]">
           <CardHeader>
-            <CardTitle>バケット密度 (年代別のやりたいこと)</CardTitle>
+            <CardTitle>年代別のやりたいこと</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">

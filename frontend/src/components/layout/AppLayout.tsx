@@ -14,7 +14,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const navItems = [
     { name: "ダッシュボード", icon: LayoutDashboard, path: "/" },
-    { name: "マイバケット", icon: ListTodo, path: "/buckets" },
+    { name: "マイチャプター", icon: ListTodo, path: "/buckets" },
     { name: "今やるべきこと", icon: Activity, path: "/actions-now" },
   ];
 

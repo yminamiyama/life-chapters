@@ -19,7 +19,7 @@ export function Sidebar({ className }: { className?: string }) {
   const [error, setError] = useState<string | null>(null);
   const navItems = [
     { name: "ダッシュボード", icon: LayoutDashboard, path: "/" },
-    { name: "マイバケット", icon: ListTodo, path: "/buckets" },
+    { name: "マイチャプター", icon: ListTodo, path: "/buckets" },
     { name: "今やるべきこと", icon: Activity, path: "/actions-now" },
   ];
 
@@ -65,7 +65,7 @@ export function Sidebar({ className }: { className?: string }) {
     <aside className={cn("flex flex-col w-64 bg-card border-r h-screen sticky top-0", className)}>
       <div className="p-6 border-b">
         <h1 className="text-xl font-bold bg-gradient-to-r from-brand-600 to-indigo-600 bg-clip-text text-transparent">
-          TimeBucket
+          LifeChapters
         </h1>
         <p className="text-xs text-muted-foreground mt-1">Design Your Life</p>
       </div>
