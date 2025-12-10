@@ -28,7 +28,7 @@ services:
   frontend:
     build:
       context: ./frontend
-    command: bash -lc "pnpm dev"
+    command: bash -lc "pnpm install && pnpm dev"
     ports:
       - "3000:3000"
     environment:
@@ -38,7 +38,7 @@ services:
     volumes:
       - ./frontend:/usr/src/app
       - pnpm_cache:/usr/src/app/.pnpm-store
-      - /usr/src/app/node_modules
+      - frontend_node_modules:/usr/src/app/node_modules
     depends_on:
       - backend
 
@@ -75,3 +75,4 @@ volumes:
   localstack_data:
   bundle_cache:
   pnpm_cache:
+  frontend_node_modules:
