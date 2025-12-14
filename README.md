@@ -72,6 +72,11 @@ bin/rails db:setup && bin/rails s
 - Backend: `bundle exec rspec`
 - CI: GitHub Actions で lint / test を自動実行
 
+## 📑 APIドキュメント (Swagger / Rswag)
+- ローカル確認: `docker compose up backend` または `cd backend && bin/rails s`, その後ブラウザで `http://localhost:4000/api-docs` を開く。
+- スキーマ再生成: `cd backend && bundle exec rake rswag:specs:swaggerize` で `backend/swagger/v1/swagger.yaml` を自動更新（Rswagのリクエストスペックがソース）。
+- 変更確認: `git diff backend/swagger/v1/swagger.yaml` で差分をレビューし、必要ならコミットする。
+
 ## 🌐 デプロイ
 - Frontend: Vercel（環境変数で API エンドポイント切替）
 - Backend: Render（`FRONTEND_URL` 設定 + `postDeploy` で `rails db:migrate`）

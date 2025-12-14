@@ -56,12 +56,14 @@ RSpec.describe '/v1/time_buckets', type: :request do
       parameter name: :time_bucket, in: :body, schema: {
         type: :object,
         properties: {
+          label: { type: :string, example: '30-35歳' },
           start_age: { type: :integer, example: 30 },
           end_age: { type: :integer, example: 35 },
           granularity: { type: :string, enum: ['5y', '10y'], example: '5y' },
-          description: { type: :string, example: 'Career building phase' }
+          description: { type: :string, example: 'Career building phase' },
+          position: { type: :integer, example: 0 }
         },
-        required: ['start_age', 'end_age', 'granularity']
+        required: ['label', 'start_age', 'end_age', 'granularity']
       }
 
       response(201, 'created') do
@@ -121,7 +123,7 @@ RSpec.describe '/v1/time_buckets', type: :request do
   end
 
   path '/v1/time_buckets/{id}' do
-    parameter name: :id, in: :path, type: :integer, description: 'Time bucket ID'
+    parameter name: :id, in: :path, schema: { type: :string, format: :uuid }, description: 'Time bucket ID'
 
     get('Show time bucket') do
       tags 'Time Buckets'

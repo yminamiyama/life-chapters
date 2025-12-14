@@ -2,7 +2,7 @@ require 'swagger_helper'
 
 RSpec.describe '/v1/time_buckets/{time_bucket_id}/bucket_items', type: :request do
   path '/v1/time_buckets/{time_bucket_id}/bucket_items' do
-    parameter name: :time_bucket_id, in: :path, type: :integer, description: 'Time bucket ID'
+    parameter name: :time_bucket_id, in: :path, schema: { type: :string, format: :uuid }, description: 'Time bucket ID'
 
     get('List bucket items') do
       tags 'Bucket Items'
@@ -92,7 +92,7 @@ RSpec.describe '/v1/time_buckets/{time_bucket_id}/bucket_items', type: :request 
           cost_estimate: { type: :integer, example: 50000 },
           target_year: { type: :integer, example: 2025 }
         },
-        required: ['title', 'category']
+        required: ['title', 'category', 'value_statement', 'target_year']
       }
 
       response(201, 'created') do
@@ -180,7 +180,7 @@ RSpec.describe '/v1/time_buckets/{time_bucket_id}/bucket_items', type: :request 
   end
 
   path '/v1/bucket_items/{id}' do
-    parameter name: :id, in: :path, type: :integer, description: 'Bucket item ID'
+    parameter name: :id, in: :path, schema: { type: :string, format: :uuid }, description: 'Bucket item ID'
 
     get('Show bucket item') do
       tags 'Bucket Items'
@@ -390,7 +390,7 @@ RSpec.describe '/v1/time_buckets/{time_bucket_id}/bucket_items', type: :request 
   end
 
   path '/v1/bucket_items/{id}/complete' do
-    parameter name: :id, in: :path, type: :integer, description: 'Bucket item ID'
+    parameter name: :id, in: :path, schema: { type: :string, format: :uuid }, description: 'Bucket item ID'
 
     patch('Mark bucket item as completed') do
       tags 'Bucket Items'
