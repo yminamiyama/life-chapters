@@ -4,7 +4,7 @@ RSpec.describe '/v1/time_buckets/templates', type: :request do
   path '/v1/time_buckets/templates' do
     post('Generate time bucket templates') do
       tags 'Time Buckets'
-      description 'Generates time bucket templates based on user age (20-100 years old, 5-year intervals)'
+      description 'Generates time bucket templates based on user age (20-100 years old, 5-year or 10-year intervals)'
       produces 'application/json'
       parameter name: :Cookie, in: :header, type: :string, required: false, description: 'Session cookie'
       

@@ -46,8 +46,14 @@ RSpec.describe '/v1/profile', type: :request do
       parameter name: :profile, in: :body, schema: {
         type: :object,
         properties: {
-          birthdate: { type: :string, format: :date, example: '1990-01-01' },
-          timezone: { type: :string, example: 'Asia/Tokyo' }
+          profile: {
+            type: :object,
+            properties: {
+              birthdate: { type: :string, format: :date, example: '1990-01-01' },
+              timezone: { type: :string, example: 'Asia/Tokyo' },
+              values_tags: { type: :object }
+            }
+          }
         }
       }
 

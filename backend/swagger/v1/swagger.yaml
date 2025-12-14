@@ -13,17 +13,23 @@ paths:
     parameters:
     - name: time_bucket_id
       in: path
+      schema:
+        type: string
+        format: uuid
       description: Time bucket ID
       required: true
-      schema:
-        type: integer
     get:
       summary: List bucket items
       tags:
       - Bucket Items
       description: Retrieves all bucket items for a specific time bucket
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -50,9 +56,13 @@ paths:
       tags:
       - Bucket Items
       description: Creates a new bucket item
-      security:
-      - cookie_auth: []
-      parameters: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '201':
           description: created
@@ -97,7 +107,7 @@ paths:
                   - health
                   - learning
                   - other
-                  example: learning
+                  example: travel
                 value_statement:
                   type: string
                   example: Expand cultural understanding
@@ -114,7 +124,7 @@ paths:
                   - low
                   - medium
                   - high
-                  example: low
+                  example: medium
                 cost_estimate:
                   type: integer
                   example: 50000
@@ -124,27 +134,29 @@ paths:
               required:
               - title
               - category
-  "/v1/time_buckets/{time_bucket_id}/bucket_items/{id}":
+              - value_statement
+              - target_year
+  "/v1/bucket_items/{id}":
     parameters:
-    - name: time_bucket_id
-      in: path
-      description: Time bucket ID
-      required: true
-      schema:
-        type: integer
     - name: id
       in: path
+      schema:
+        type: string
+        format: uuid
       description: Bucket item ID
       required: true
-      schema:
-        type: integer
     get:
       summary: Show bucket item
       tags:
       - Bucket Items
       description: Retrieves a specific bucket item
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -169,9 +181,13 @@ paths:
       tags:
       - Bucket Items
       description: Updates a specific bucket item
-      security:
-      - cookie_auth: []
-      parameters: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -238,8 +254,13 @@ paths:
       tags:
       - Bucket Items
       description: Deletes a specific bucket item
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '204':
           description: no content
@@ -247,27 +268,27 @@ paths:
           description: not found
         '401':
           description: unauthorized
-  "/v1/time_buckets/{time_bucket_id}/bucket_items/{id}/complete":
+  "/v1/bucket_items/{id}/complete":
     parameters:
-    - name: time_bucket_id
-      in: path
-      description: Time bucket ID
-      required: true
-      schema:
-        type: integer
     - name: id
       in: path
+      schema:
+        type: string
+        format: uuid
       description: Bucket item ID
       required: true
-      schema:
-        type: integer
     patch:
       summary: Mark bucket item as completed
       tags:
       - Bucket Items
       description: Marks a bucket item as completed and sets completed_at timestamp
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -294,8 +315,13 @@ paths:
       - Dashboard
       description: Retrieves dashboard summary statistics including bucket counts
         and item progress
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -304,27 +330,58 @@ paths:
               schema:
                 type: object
                 properties:
+                  bucket_density:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        bucket_id:
+                          type: string
+                          format: uuid
+                        label:
+                          type: string
+                        start_age:
+                          type: integer
+                        end_age:
+                          type: integer
+                        item_count:
+                          type: integer
+                        total_cost:
+                          type: number
+                  category_distribution:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        category:
+                          type: string
+                        count:
+                          type: integer
+                        percentage:
+                          type: number
+                  completion_stats:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      completed:
+                        type: integer
+                      in_progress:
+                        type: integer
+                      planned:
+                        type: integer
+                      completion_rate:
+                        type: number
                   total_buckets:
                     type: integer
-                    example: 16
                   total_items:
                     type: integer
-                    example: 42
-                  completed_items:
-                    type: integer
-                    example: 8
-                  active_items:
-                    type: integer
-                    example: 30
-                  archived_items:
-                    type: integer
-                    example: 4
                 required:
+                - bucket_density
+                - category_distribution
+                - completion_stats
                 - total_buckets
                 - total_items
-                - completed_items
-                - active_items
-                - archived_items
         '401':
           description: unauthorized
           content:
@@ -338,17 +395,36 @@ paths:
       - Dashboard
       description: Retrieves bucket items that should be actioned now based on user
         current age
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/BucketItem"
+                type: object
+                properties:
+                  current_age:
+                    type: integer
+                  current_year:
+                    type: integer
+                  threshold_years:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      type: object
+                required:
+                - current_age
+                - current_year
+                - threshold_years
+                - items
         '401':
           description: unauthorized
           content:
@@ -361,31 +437,56 @@ paths:
       tags:
       - Dashboard
       description: Retrieves recently completed bucket items for review
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/BucketItem"
+                type: object
+                properties:
+                  total_completed:
+                    type: integer
+                  total_cost:
+                    type: number
+                  category_achievements:
+                    type: array
+                  bucket_completions:
+                    type: array
+                  items:
+                    type: array
+                required:
+                - total_completed
+                - total_cost
+                - category_achievements
+                - bucket_completions
+                - items
         '401':
           description: unauthorized
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
-  "/v1/notification_settings":
+  "/v1/notification-settings":
     get:
       summary: Get notification settings
       tags:
       - Notification Settings
       description: Retrieves the authenticated user notification preferences
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -404,9 +505,13 @@ paths:
       tags:
       - Notification Settings
       description: Updates the authenticated user notification preferences
-      security:
-      - cookie_auth: []
-      parameters: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -461,8 +566,13 @@ paths:
       tags:
       - Profile
       description: Retrieves the authenticated user profile information
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -481,9 +591,13 @@ paths:
       tags:
       - Profile
       description: Updates the authenticated user profile information
-      security:
-      - cookie_auth: []
-      parameters: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -509,20 +623,25 @@ paths:
             schema:
               type: object
               properties:
-                birthdate:
-                  type: string
-                  format: date
-                  example: '1990-01-01'
-                timezone:
-                  type: string
-                  example: Asia/Tokyo
+                profile:
+                  type: object
+                  properties:
+                    birthdate:
+                      type: string
+                      format: date
+                      example: '1990-01-01'
+                    timezone:
+                      type: string
+                      example: Asia/Tokyo
+                    values_tags:
+                      type: object
   "/auth/google_oauth2/callback":
     post:
       summary: Google OAuth callback (production)
       tags:
       - Authentication
-      description: Google OAuth 2.0 callback endpoint for user authentication (production
-        environment)
+      description: Google OAuth 2.0 callback endpoint - redirects to frontend with
+        authentication result
       parameters:
       - name: code
         in: query
@@ -537,33 +656,14 @@ paths:
         schema:
           type: string
       responses:
-        '200':
-          description: authentication successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Successfully authenticated
-                  user:
-                    "$ref": "#/components/schemas/User"
-                required:
-                - message
-                - user
-        '401':
-          description: authentication failed
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Error"
+        '302':
+          description: redirect after OAuth processing
     get:
       summary: Google OAuth callback (development)
       tags:
       - Authentication
-      description: Google OAuth 2.0 callback endpoint for user authentication (development
-        environment only)
+      description: Google OAuth 2.0 callback endpoint for development - redirects
+        to frontend
       parameters:
       - name: code
         in: query
@@ -578,21 +678,8 @@ paths:
         schema:
           type: string
       responses:
-        '200':
-          description: authentication successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Successfully authenticated
-                  user:
-                    "$ref": "#/components/schemas/User"
-                required:
-                - message
-                - user
+        '302':
+          description: redirect after OAuth processing
   "/auth/google_oauth2":
     get:
       summary: Initiate Google OAuth (development)
@@ -611,25 +698,29 @@ paths:
       responses:
         '302':
           description: redirect to Google
-  "/v1/sessions":
+  "/logout":
     delete:
       summary: Logout
       tags:
       - Authentication
-      description: Logs out the current user by destroying their session
-      security:
-      - cookie_auth: []
+      description: Logs out the current user and redirects to frontend
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
-        '200':
-          description: logged out successfully
-        '401':
-          description: not authenticated
+        '302':
+          description: redirect even without authentication
   "/auth/failure":
     get:
       summary: OAuth failure callback
       tags:
       - Authentication
-      description: Handles OAuth authentication failures
+      description: Handles OAuth authentication failures - redirects to frontend with
+        error
       parameters:
       - name: message
         in: query
@@ -642,24 +733,8 @@ paths:
         schema:
           type: string
       responses:
-        '401':
-          description: authentication failed
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Authentication failed
-                  message:
-                    type: string
-                    example: invalid_credentials
-                  strategy:
-                    type: string
-                    example: google_oauth2
-                required:
-                - error
+        '302':
+          description: redirect to frontend with error
   "/v1/time_buckets":
     get:
       summary: List time buckets
@@ -667,8 +742,13 @@ paths:
       - Time Buckets
       description: Retrieves all time buckets for the authenticated user, ordered
         by position
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -689,9 +769,13 @@ paths:
       tags:
       - Time Buckets
       description: Creates a new time bucket
-      security:
-      - cookie_auth: []
-      parameters: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '201':
           description: created
@@ -717,6 +801,9 @@ paths:
             schema:
               type: object
               properties:
+                label:
+                  type: string
+                  example: 30-35歳
                 start_age:
                   type: integer
                   example: 30
@@ -732,7 +819,11 @@ paths:
                 description:
                   type: string
                   example: Career building phase
+                position:
+                  type: integer
+                  example: 0
               required:
+              - label
               - start_age
               - end_age
               - granularity
@@ -740,17 +831,23 @@ paths:
     parameters:
     - name: id
       in: path
+      schema:
+        type: string
+        format: uuid
       description: Time bucket ID
       required: true
-      schema:
-        type: integer
     get:
       summary: Show time bucket
       tags:
       - Time Buckets
       description: Retrieves a specific time bucket
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -775,9 +872,13 @@ paths:
       tags:
       - Time Buckets
       description: Updates a specific time bucket
-      security:
-      - cookie_auth: []
-      parameters: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '200':
           description: successful
@@ -814,8 +915,13 @@ paths:
       tags:
       - Time Buckets
       description: Deletes a specific time bucket
-      security:
-      - cookie_auth: []
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
       responses:
         '204':
           description: no content
@@ -829,18 +935,43 @@ paths:
       tags:
       - Time Buckets
       description: Generates time bucket templates based on user age (20-100 years
-        old, 5-year intervals)
-      security:
-      - cookie_auth: []
+        old, 5-year or 10-year intervals)
+      parameters:
+      - name: Cookie
+        in: header
+        required: false
+        description: Session cookie
+        schema:
+          type: string
+      - name: granularity
+        in: query
+        required: true
+        enum:
+        - 5y
+        - 10y
+        description: "Time interval for templates:\n * `5y` \n * `10y` \n "
+        schema:
+          type: string
       responses:
         '201':
           description: templates created
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/TimeBucket"
+                type: object
+                properties:
+                  message:
+                    type: string
+                  count:
+                    type: integer
+                  buckets:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/TimeBucket"
+                required:
+                - message
+                - count
+                - buckets
         '422':
           description: templates already exist
           content:
@@ -862,12 +993,6 @@ servers:
     defaultHost:
       default: api.timebucket.example.com
 components:
-  securitySchemes:
-    cookie_auth:
-      type: apiKey
-      in: cookie
-      name: session_token
-      description: Session cookie obtained after Google OAuth authentication
   schemas:
     User:
       type: object
@@ -946,13 +1071,15 @@ components:
           - easy
           - medium
           - hard
+          nullable: true
         risk_level:
           type: string
           enum:
           - low
           - medium
           - high
-        cost_estimate:
+          nullable: true
+        estimated_cost:
           type: number
           nullable: true
         target_year:
